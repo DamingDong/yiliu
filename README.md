@@ -1,127 +1,145 @@
-# 忆流 (Yiliu)
+# Yiliu (忆流)
 
-> 随时捕捉、自动整理、按需浮现的 AI 笔记知识库
+> Capture anytime, auto-organize, surface on demand - AI-powered note-taking knowledge base
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/DamingDong/yiliu)
 
-## 简介
+[中文文档](./README_CN.md)
 
-忆流是一个 OpenClaw Skill，专注于个人知识管理。通过 AI 能力实现自动整理和语义搜索，让知识像水一样流动。
+## Overview
 
-## 特性
+Yiliu is an OpenClaw Skill focused on personal knowledge management. With AI capabilities for automatic organization and semantic search, it makes knowledge flow like water.
 
-- ⚡ **零门槛记录** - 3 秒内完成记录，无需分类
-- 🧠 **AI 自动整理** - 自动生成摘要和标签
-- 🔍 **语义搜索** - 理解意图，找你想找
-- 📱 **随时捕捉** - 微信即入口
-- 💾 **本地存储** - 数据主权，一键导出
+## Features
 
-## 快速开始
+- ⚡ **Zero-barrier capture** - Record in 3 seconds, no categorization needed
+- 🧠 **AI auto-organization** - Automatic summaries and tags
+- 🔍 **Semantic search** - Understands intent, finds what you need
+- 📱 **Capture anywhere** - WeChat as entry point
+- 💾 **Local storage** - Data sovereignty, one-click export
 
-### 安装
+## Quick Start
+
+### Installation
 
 ```bash
-# 克隆项目
+# Clone the project
 git clone https://github.com/DamingDong/yiliu.git
 cd yiliu
 
-# 安装依赖
+# Install dependencies
 npm install
 
-# 编译
+# Build
 npm run build
 ```
 
-### 配置
+### Configuration
 
 ```bash
-# 可选：配置 OpenAI API Key（启用 AI 增强功能）
+# Optional: Configure OpenAI API Key (enables AI enhancement features)
 export OPENAI_API_KEY=your-api-key
 ```
 
-### 使用
+**Note**: Without an API key, the app automatically falls back to local embedding models (`@huggingface/transformers`). Basic recording and search still work.
+
+### Usage
 
 ```bash
-# 启动
+# Start
 npm start
 
-# 或使用内置命令
-./yiliu "记录 今天的收获"
-./yiliu "搜索 CRDT"
+# Or use built-in commands
+./yiliu "record today's learnings"
+./yiliu "search CRDT"
 ```
 
-## 命令列表
+## Commands
 
-| 命令 | 说明 |
-|------|------|
-| `/记 <内容>` | 记录笔记 |
-| `/搜 <关键词>` | 搜索笔记 |
-| `/列表` | 查看所有笔记 |
-| `/历史 <id>` | 查看版本历史 |
-| `/统计` | 查看统计信息 |
-| `/导出` | 导出数据 |
-| `/删除 <id>` | 删除笔记 |
-| `/帮助` | 查看帮助 |
+| Command | Description |
+|---------|-------------|
+| `/记 <content>` | Record a note |
+| `/搜 <keyword>` | Search notes |
+| `/列表` | List all notes |
+| `/历史 <id>` | View version history |
+| `/统计` | View statistics |
+| `/导出` | Export data |
+| `/删除 <id>` | Delete note |
+| `/帮助` | Show help |
 
-## 项目结构
+## Project Structure
 
 ```
 yiliu/
 ├── src/
-│   ├── index.ts          # 入口
-│   ├── commands/         # 命令处理
-│   ├── storage/          # 存储层
-│   ├── ai/              # AI 能力
-│   └── types/           # 类型定义
-├── dist/                # 编译输出
-├── data/                # 数据存储
-├── SKILL.md            # 使用文档
+│   ├── index.ts          # Entry point
+│   ├── commands/         # Command handlers
+│   ├── storage/          # Storage layer
+│   ├── ai/               # AI capabilities
+│   └── types/            # Type definitions
+├── dist/                 # Build output
+├── data/                 # Data storage
+├── SKILL.md              # Usage documentation
 └── package.json
 ```
 
-## 技术栈
+## Tech Stack
 
-- **存储**: LibSQL (SQLite)
-- **嵌入**: OpenAI / HuggingFace Transformers
-- **框架**: OpenClaw Skill
-- **语言**: TypeScript
+- **Storage**: LibSQL (SQLite)
+- **Embeddings**: OpenAI / HuggingFace Transformers
+- **Framework**: OpenClaw Skill
+- **Language**: TypeScript
 
-## 配置项
+## Configuration
 
-| 环境变量 | 说明 | 默认值 |
-|----------|------|--------|
+| Environment Variable | Description | Default |
+|---------------------|-------------|---------|
 | `OPENAI_API_KEY` | OpenAI API Key | - |
-| `OPENAI_BASE_URL` | API 端点 | https://api.openai.com/v1 |
-| `YILIU_DATA_PATH` | 数据目录 | ./data |
+| `OPENAI_BASE_URL` | API endpoint | https://api.openai.com/v1 |
+| `YILIU_DATA_PATH` | Data directory | ./data |
 
-## 开发
+## Development
 
 ```bash
-# 开发模式（监听变化）
+# Development mode (watch for changes)
 npm run dev
 
-# 测试
+# Test
 npm test
 
-# 构建
+# Build
 npm run build
 ```
 
-## 更新日志
+## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md)
 
-## 贡献
+## Roadmap
 
-欢迎提交 Issue 和 PR！
+### v1.3 (Planned)
+- Full embedjs integration
+- Data migration scripts
+- Unit tests
 
-## 许可证
+### v2.0 (Future)
+- WebDAV sync
+- Web scraping (readability)
+- PDF processing
+- Yjs real-time sync
+- Web canvas interface
 
-MIT License - 详见 [LICENSE](LICENSE)
+## Contributing
 
-## 联系方式
+Issues and Pull Requests are welcome!
 
-- 作者：董大明
-- Email：daming@example.com
-- GitHub：https://github.com/DamingDong/yiliu
+## License
+
+MIT License - See [LICENSE](LICENSE)
+
+## Contact
+
+- Author: Daming Dong (董大明)
+- Email: dmdong@gmail.com
+- GitHub: https://github.com/DamingDong/yiliu
