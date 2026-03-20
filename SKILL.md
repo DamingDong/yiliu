@@ -1,8 +1,8 @@
 ---
 name: yiliu
-description: "忆流 - 随时捕捉、自动整理、按需浮现的笔记知识库。支持文字记录、语义搜索、AI摘要、自动标签、版本管理"
-version: 1.1.0
-author: Terry
+description: "Yiliu - AI-powered note-taking knowledge base with semantic search, auto-summarization, and version management"
+version: 1.2.0
+author: Daming Dong
 license: MIT
 tags:
   - note
@@ -10,108 +10,109 @@ tags:
   - memory
   - search
   - AI
-  - 笔记
-  - 知识库
-  - 向量搜索
+  - semantic-search
+  - rag
 ---
 
-# 忆流 - AI 笔记知识库
+# Yiliu - AI Note-Taking Knowledge Base
 
-随时捕捉、自动整理、按需浮现的笔记知识库。
+Capture anytime, auto-organize, surface on demand.
 
-## ✨ 新功能 (v1.1.0)
+## ✨ What's New (v1.2.0)
 
-- **语义搜索**：基于向量相似度，理解意图找内容
-- **AI 摘要**：自动生成笔记摘要
-- **自动标签**：AI 自动提取标签
-- **混合搜索**：语义 + 关键词融合
+- **LibSQL Storage**: Replaced sql.js with LibSQL for better performance
+- **Semantic Search**: Vector similarity search with hybrid ranking
+- **AI Enhancement**: Auto-generated summaries and tags
+- **Local Embeddings**: Support for HuggingFace Transformers (no API key needed)
+- **Version Management**: Auto-save + manual marking for important versions
 
-## 功能
+## Features
 
-| 功能 | 说明 | 命令 |
-|------|------|------|
-| 记录 | 快速记录文字，自动 AI 增强 | `/记` 或直接输入 |
-| 语义搜索 | 理解意图，找相关内容 | `/搜 <关键词>` |
-| 列表 | 查看最近笔记 | `/列表` |
-| 编辑 | 修改已有笔记 | `/编辑 <id> <内容>` |
-| 历史 | 查看版本历史 | `/历史 <id>` |
-| 导出 | 导出 Markdown | `/导出` |
-| 统计 | 查看笔记统计 | `/统计` |
+| Feature | Description | Command |
+|---------|-------------|---------|
+| Record | Quick capture with AI enhancement | `/记` or type directly |
+| Semantic Search | Find content by intent | `/搜 <keyword>` |
+| List | View recent notes | `/列表` |
+| Edit | Modify existing notes | `/编辑 <id> <content>` |
+| History | View version history | `/历史 <id>` |
+| Export | Export to Markdown | `/导出` |
+| Stats | View statistics | `/统计` |
 
-## 快速开始
+## Quick Start
 
-### 安装
+### Install
 
 ```bash
-cd skills/yiliu
+git clone https://github.com/DamingDong/yiliu.git
+cd yiliu
 npm install
 npm run build
 ```
 
-### 配置 AI（可选）
-
-设置环境变量启用 AI 功能：
+### Configure AI (Optional)
 
 ```bash
 export OPENAI_API_KEY="your-api-key"
-# 可选：自定义 API 地址
+# Optional: Custom API endpoint
 export OPENAI_BASE_URL="https://api.openai.com/v1"
 ```
 
-### 使用
+**Without API Key**: Falls back to local embeddings via `@huggingface/transformers`. Core features still work.
+
+### Usage
 
 ```
-# 记录笔记（AI 自动摘要 + 标签）
-/记 今天学到了 CRDT 同步的原理，核心是 Last-Write-Wins
+# Record a note (AI auto-summarizes + tags)
+/记 Today I learned about CRDT sync with Last-Write-Wins strategy
 
-# 语义搜索（理解意图）
-搜 分布式同步的方法
+# Semantic search (understands intent)
+搜 distributed sync methods
 
-# 查看列表
+# List notes
 /列表
 
-# 查看统计
+# View stats
 /统计
 
-# 导出备份
+# Export backup
 /导出
 ```
 
-## AI 功能说明
+## AI Features
 
-| 功能 | 模型 | 说明 |
-|------|------|------|
-| 向量嵌入 | text-embedding-3-small | 语义搜索基础 |
-| 摘要生成 | gpt-4o-mini | 自动摘要 |
-| 标签提取 | gpt-4o-mini | 自动标签 |
+| Feature | Model | Description |
+|---------|-------|-------------|
+| Embeddings | text-embedding-3-small / all-MiniLM-L6-v2 | Semantic search |
+| Summaries | gpt-4o-mini | Auto summaries |
+| Tags | gpt-4o-mini | Auto tags |
 
-**未配置 API Key 时**：回退到基础关键词搜索，不影响核心功能使用。
+**No API Key**: Falls back to keyword search, core features remain functional.
 
-## 数据存储
+## Data Storage
 
-- **SQLite**：笔记内容、版本历史
-- **向量索引**：语义搜索
-- **路径**：`data/yiliu.db`、`data/vectors.json`
+- **LibSQL**: Notes, version history
+- **Vector Index**: Semantic search
+- **Path**: `data/yiliu.db`, `data/vectors.json`
 
-## 架构
+## Architecture
 
 ```
-yiliu-skill/
+yiliu/
 ├── src/
-│   ├── index.ts       # 入口
-│   ├── commands/      # 命令处理
-│   ├── storage/       # 存储（SQLite + 向量）
-│   ├── ai/            # AI 能力
-│   └── types/         # 类型定义
-├── data/              # 数据目录
+│   ├── index.ts       # Entry
+│   ├── commands/      # Command handlers
+│   ├── storage/       # Storage (LibSQL + Vector)
+│   ├── ai/            # AI capabilities
+│   └── types/         # Type definitions
+├── data/              # Data directory
 └── SKILL.md
 ```
 
-## 版本历史
+## Version History
 
-- **v1.1.0** (2026-03-20) - 新增语义搜索、AI 摘要、自动标签
-- **v1.0.0** (2026-03-19) - MVP 版本
+- **v1.2.0** (2026-03-20) - LibSQL, semantic search, AI enhancement, local embeddings
+- **v1.0.0** (2026-03-19) - MVP release
 
-## 许可证
+## License
 
 MIT License
