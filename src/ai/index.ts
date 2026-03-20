@@ -6,6 +6,8 @@
 
 import type { Note } from '../types/index.js';
 import { pipeline, env } from '@xenova/transformers';
+import { homedir } from 'os';
+import { join } from 'path';
 
 // OpenAI API 配置
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
@@ -17,9 +19,11 @@ const CHAT_MODEL = process.env.CHAT_MODEL || 'gpt-4o-mini';
 const LOCAL_MODEL = process.env.LOCAL_EMBED_MODEL || 'Xenova/all-MiniLM-L6-v2';
 
 // 设置 Xenova 环境（Node.js 优化）
+// 使用用户主目录下的缓存，避免中文路径问题
+const cacheDir = process.env.XENOVA_CACHE_DIR || join(homedir(), '.cache', 'yiliu', 'models');
 env.allowLocalModels = true;
 env.useBrowserCache = false; // Node.js 不使用浏览器缓存
-env.localModelPath = process.env.XENOVA_CACHE_DIR || undefined; // 可自定义缓存路径
+env.localModelPath = cacheDir;
 
 // 嵌入提供者类型
 export type EmbedderProvider = 'openai' | 'huggingface' | 'local';
