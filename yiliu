@@ -1,0 +1,10 @@
+#!/bin/bash
+# 忆流 CLI 入口脚本
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# 数据存储在用户的 OpenClaw 数据目录
+export YILIU_DATA_PATH="${HOME}/.openclaw/data/yiliu"
+
+# 运行 Node.js
+node "${SCRIPT_DIR}/yiliu.mjs" "$@"

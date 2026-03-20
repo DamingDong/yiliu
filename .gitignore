@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+*.js
+*.js.map
+*.d.ts
+*.d.cts
+!src/**/*.ts
+
+# Data
+data/
+*.db
+*.sqlite
+vectors.json
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test
+coverage/
+
+# Misc
+*.tgz
+.npm
