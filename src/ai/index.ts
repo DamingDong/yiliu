@@ -1,11 +1,11 @@
 /**
  * AI 能力模块
  * 提供文本向量嵌入、摘要生成、自动标签提取
- * 支持云端（OpenAI）和本地（HuggingFace）嵌入
+ * 支持云端（OpenAI）和本地（Xenova）嵌入
  */
 
 import type { Note } from '../types/index.js';
-import { pipeline, env } from '@huggingface/transformers';
+import { pipeline, env } from '@xenova/transformers';
 
 // OpenAI API 配置
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
@@ -16,9 +16,10 @@ const CHAT_MODEL = process.env.CHAT_MODEL || 'gpt-4o-mini';
 // 本地嵌入配置
 const LOCAL_MODEL = process.env.LOCAL_EMBED_MODEL || 'Xenova/all-MiniLM-L6-v2';
 
-// 设置 HuggingFace 环境
+// 设置 Xenova 环境（Node.js 优化）
 env.allowLocalModels = true;
-env.useBrowserCache = true;
+env.useBrowserCache = false; // Node.js 不使用浏览器缓存
+env.localModelPath = process.env.XENOVA_CACHE_DIR || undefined; // 可自定义缓存路径
 
 // 嵌入提供者类型
 export type EmbedderProvider = 'openai' | 'huggingface' | 'local';
