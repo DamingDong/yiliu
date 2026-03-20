@@ -1,6 +1,6 @@
 {
   "name": "yiliu",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "忆流 - 随时捕捉、自动整理、按需浮现的 AI 笔记知识库",
   "main": "dist/index.js",
   "type": "module",
