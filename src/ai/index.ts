@@ -5,6 +5,7 @@
  */
 
 import type { Note } from '../types/index.js';
+import { pipeline, env } from '@huggingface/transformers';
 
 // OpenAI API 配置
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
@@ -14,6 +15,10 @@ const CHAT_MODEL = process.env.CHAT_MODEL || 'gpt-4o-mini';
 
 // 本地嵌入配置
 const LOCAL_MODEL = process.env.LOCAL_EMBED_MODEL || 'Xenova/all-MiniLM-L6-v2';
+
+// 设置 HuggingFace 环境
+env.allowLocalModels = true;
+env.useBrowserCache = true;
 
 // 嵌入提供者类型
 export type EmbedderProvider = 'openai' | 'huggingface' | 'local';
@@ -62,7 +67,7 @@ export function getEmbedderProvider(): EmbedderProvider {
 }
 
 /**
- * 动态导入本地嵌入器
+ * 获取本地嵌入器
  */
 async function getLocalEmbedder(): Promise<any> {
   if (localEmbedder) return localEmbedder;
@@ -78,14 +83,7 @@ async function getLocalEmbedder(): Promise<any> {
   localEmbedderLoading = true;
   
   try {
-    // 动态导入 transformers.js
-    const { pipeline, env } = await import('@huggingface/transformers');
-    
-    // 设置环境（跳过浏览器检查）
-    env.allowLocalModels = true;
-    env.useBrowserCache = true;
-    
-    // 创建嵌入管道
+    // 使用静态导入的 pipeline
     localEmbedder = await pipeline('feature-extraction', LOCAL_MODEL);
     
     console.log(`[yiliu] Local embedder loaded: ${LOCAL_MODEL}`);

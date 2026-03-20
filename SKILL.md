@@ -12,6 +12,15 @@ tags:
   - AI
   - semantic-search
   - rag
+security:
+  network: true
+  notes: |
+    This skill makes optional network requests to OpenAI API for AI features.
+    - External API: OpenAI (optional, requires user's own API key)
+    - Local embeddings: HuggingFace Transformers (no network required)
+    - No eval() or arbitrary code execution
+    - No hardcoded credentials
+    - Data stored locally in SQLite/LibSQL
 ---
 
 # Yiliu - AI Note-Taking Knowledge Base
