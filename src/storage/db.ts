@@ -117,20 +117,10 @@ export async function createNoteAsync(content: string, source: string = 'text', 
     wordCount
   };
 
-  // AI 增强
+  // AI 增强（仅当 OpenAI 可用时）
   let aiResult: AIEnhanceResult | null = null;
-  let embedding: number[] | null = null;
-
   if (isAIAvailable()) {
-    // 并行执行 embedding 和 enhancement
-    const [embResult, enhanceResult] = await Promise.all([
-      generateEmbedding(content),
-      enhanceNote(content),
-    ]);
-
-    embedding = embResult?.embedding || null;
-    aiResult = enhanceResult;
-
+    aiResult = await enhanceNote(content);
     if (aiResult) {
       note.aiEnhanced = {
         summary: aiResult.summary,
@@ -139,6 +129,11 @@ export async function createNoteAsync(content: string, source: string = 'text', 
       };
     }
   }
+
+  // 始终尝试生成嵌入（OpenAI 或本地）
+  let embedding: number[] | null = null;
+  const embResult = await generateEmbedding(content);
+  embedding = embResult?.embedding || null;
 
   // 插入数据库
   await db.execute({
@@ -161,6 +156,7 @@ export async function createNoteAsync(content: string, source: string = 'text', 
   // 添加到向量索引
   if (embedding) {
     addVector(id, embedding, content);
+    console.log(`[yiliu] Vectorized note ${id.slice(0, 8)}`);
   }
 
   await createVersion(note);
