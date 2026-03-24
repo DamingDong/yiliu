@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.4] - 2026-03-23
+
+### Fixed
+- 向量化搜索问题（分离 AI 增强与嵌入生成逻辑）
+- 中文路径兼容性问题（使用 ~/.cache/yiliu/models）
+
+### Added
+- 单元测试（vitest）
+
+## [1.2.3] - 2026-03-22
+
+### Fixed
+- 中文路径问题（@xenova/transformers 缓存路径）
+
+## [1.2.2] - 2026-03-21
+
+### Changed
+- 本地嵌入从 @huggingface/transformers 切换到 @xenova/transformers
+
+## [1.2.1] - 2026-03-20
+
+### Fixed
+- ClawHub 安全警告（动态 import 问题）
+
 ## [1.2.0] - 2026-03-20
 
 ### Added

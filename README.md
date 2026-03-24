@@ -3,7 +3,7 @@
 > Capture anytime, auto-organize, surface on demand - AI-powered note-taking knowledge base
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/DamingDong/yiliu)
+[![Version](https://img.shields.io/badge/version-1.2.4-blue.svg)](https://github.com/DamingDong/yiliu)
 
 [中文文档](./README_CN.md)
 
@@ -119,9 +119,8 @@ See [CHANGELOG.md](CHANGELOG.md)
 ## Roadmap
 
 ### v1.3 (Planned)
-- Full embedjs integration
 - Data migration scripts
-- Unit tests
+- embedjs integration (skipped - current implementation preferred)
 
 ### v2.0 (Future)
 - WebDAV sync

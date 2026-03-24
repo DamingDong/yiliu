@@ -3,7 +3,7 @@
 > 随时捕捉、自动整理、按需浮现的 AI 笔记知识库
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/DamingDong/yiliu)
+[![Version](https://img.shields.io/badge/version-1.2.4-blue.svg)](https://github.com/DamingDong/yiliu)
 
 [English](./README.md)
 
@@ -119,9 +119,9 @@ npm run build
 ## 路线图
 
 ### v1.3（计划中）
-- embedjs 完整集成
-- 数据迁移脚本
-- 单元测试
+- embedjs 集成（已跳过 - 当前实现更轻量）
+- embedjs 集成（已跳过 - 当前实现更轻量）
+- embedjs 集成（已跳过 - 当前实现更轻量）
 
 ### v2.0（未来）
 - WebDAV 同步

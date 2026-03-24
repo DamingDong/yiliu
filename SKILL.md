@@ -1,7 +1,7 @@
 ---
 name: yiliu
 description: "Yiliu - AI-powered note-taking knowledge base with semantic search, auto-summarization, and version management"
-version: 1.2.0
+version: 1.2.4
 author: Daming Dong
 license: MIT
 tags:
@@ -27,7 +27,7 @@ security:
 
 Capture anytime, auto-organize, surface on demand.
 
-## ✨ What's New (v1.2.0)
+## ✨ What's New (v1.2.4)
 
 - **LibSQL Storage**: Replaced sql.js with LibSQL for better performance
 - **Semantic Search**: Vector similarity search with hybrid ranking

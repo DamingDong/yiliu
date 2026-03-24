@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>忆流 - 第二大脑</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-primary: #6366f1;
+      --color-primary-hover: #4f46e5;
+      --color-bg: #f8f9fa;
+      --color-bg-card: #ffffff;
+      --color-text: #18181b;
+      --color-text-secondary: #71717a;
+      --color-text-muted: #a1a1aa;
+      --color-border: #e4e4e7;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--color-bg); color: var(--color-text); overflow: hidden; height: 100vh; }
+    .app-container { display: grid; grid-template-columns: 200px 1fr 320px; height: 100vh; width: 100vw; }
+
+    /* Sidebar */
+    .sidebar { background: var(--color-bg-card); border-right: 1px solid var(--color-border); display: flex; flex-direction: column; }
+    .sidebar-header { padding: 20px; border-bottom: 1px solid var(--color-border); }
+    .logo { display: flex; align-items: center; gap: 10px; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600; }
+    .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; }
+    .sidebar-nav { padding: 16px 12px; flex: 1; display: flex; flex-direction: column; }
+    .nav-section { margin-bottom: 24px; }
+    .nav-section-title { font-size: 11px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 0 12px; margin-bottom: 8px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s ease; font-size: 14px; }
+    .nav-item:hover { background: #f4f4f5; color: var(--color-text); }
+    .nav-item.active { background: #eef2ff; color: var(--color-primary); }
+    .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .nav-item-badge { margin-left: auto; font-size: 11px; background: #f4f4f5; padding: 2px 6px; border-radius: 4px; color: var(--color-text-muted); }
+
+    /* Center Panel */
+    .panel { background: var(--color-bg); display: none; flex-direction: column; border-right: 1px solid var(--color-border); }
+    .panel.active { display: flex; }
+    .panel-header { padding: 16px 24px; background: var(--color-bg-card); border-bottom: 1px solid var(--color-border); display: flex; align-items: center; justify-content: space-between; }
+    .panel-title { font-size: 15px; font-weight: 500; }
+    .panel-subtitle { font-size: 12px; color: var(--color-text-muted); margin-top: 2px; }
+    .panel-content { flex: 1; overflow-y: auto; }
+
+    /* Messages */
+    .message { display: flex; gap: 12px; margin-bottom: 20px; animation: fadeIn 0.3s ease; }
+    .message-avatar { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; }
+    .message-avatar.user { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; }
+    .message-avatar.ai { background: #f4f4f5; color: var(--color-text-secondary); }
+    .message-content { flex: 1; min-width: 0; }
+    .message-label { font-size: 12px; color: var(--color-text-muted); margin-bottom: 6px; }
+    .message-text { font-size: 14px; line-height: 1.7; color: var(--color-text); }
+    .message-text blockquote { border-left: 3px solid var(--color-primary); padding-left: 12px; margin: 10px 0; color: var(--color-text-secondary); font-size: 13px; background: #f9fafb; padding: 12px; border-radius: 0 8px 8px 0; }
+
+    /* Input */
+    .input-area { padding: 20px 24px; background: var(--color-bg-card); border-top: 1px solid var(--color-border); }
+    .input-container { display: flex; gap: 12px; align-items: flex-end; }
+    .input-wrapper { flex: 1; position: relative; }
+    .chat-input { width: 100%; min-height: 56px; max-height: 160px; padding: 16px; border: 1px solid var(--color-border); border-radius: 12px; font-size: 14px; font-family: inherit; resize: none; outline: none; transition: all 0.2s; background: var(--color-bg); }
+    .chat-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+    .send-btn { width: 56px; height: 56px; border-radius: 12px; background: var(--color-primary); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; }
+    .send-btn:hover { background: var(--color-primary-hover); }
+    .send-btn svg { width: 20px; height: 20px; }
+    .input-hint { font-size: 11px; color: var(--color-text-muted); margin-top: 8px; display: flex; gap: 12px; }
+    .input-hint kbd { background: #f4f4f5; padding: 2px 6px; border-radius: 4px; font-family: inherit; }
+
+    /* Editor */
+    .editor-container { background: var(--color-bg-card); margin: 24px; border-radius: 16px; display: flex; flex-direction: column; border: 1px solid var(--color-border); height: calc(100% - 48px); }
+    .editor-toolbar { display: flex; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--color-border); }
+    .tool-btn { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; border: none; background: transparent; color: var(--color-text-secondary); }
+    .tool-btn:hover { background: #f4f4f5; }
+    .tool-btn.active { background: var(--color-primary); color: white; }
+    .tool-btn svg { width: 18px; height: 18px; }
+    .editor-content { flex: 1; padding: 20px; font-size: 15px; line-height: 1.8; outline: none; overflow-y: auto; white-space: pre-wrap; }
+    .editor-footer { padding: 12px 16px; border-top: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; }
+    .editor-stats { font-size: 12px; color: var(--color-text-muted); }
+
+    /* Grid Cards */
+    .grid-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; padding: 24px; }
+    .grid-card { background: white; padding: 24px; border-radius: 12px; border: 1px solid var(--color-border); cursor: pointer; transition: all 0.2s; }
+    .grid-card:hover { border-color: var(--color-primary); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .grid-card-icon { font-size: 32px; margin-bottom: 12px; }
+    .grid-card-title { font-weight: 600; margin-bottom: 4px; }
+    .grid-card-desc { font-size: 12px; color: var(--color-text-muted); }
+
+    /* Search */
+    .search-box { background: white; border: 1px solid var(--color-border); border-radius: 12px; padding: 16px; display: flex; gap: 12px; margin: 24px; }
+    .search-input { flex: 1; border: none; outline: none; font-size: 15px; background: transparent; }
+    .match-score { color: var(--color-primary); font-size: 12px; font-weight: 500; }
+
+    /* Export */
+    .export-list { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+    .export-item { background: white; border: 1px solid var(--color-border); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 16px; }
+    .export-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+    .export-info { flex: 1; }
+    .export-title { font-weight: 500; margin-bottom: 4px; }
+    .export-desc { font-size: 12px; color: var(--color-text-muted); }
+    .export-btn { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; }
+    .export-btn.primary { background: var(--color-primary); color: white; }
+    .export-btn.secondary { background: #f4f4f5; color: var(--color-text); }
+
+    /* Right Panel */
+    .right-panel { background: var(--color-bg-card); border-left: 1px solid var(--color-border); display: flex; flex-direction: column; }
+    .right-header { padding: 16px; border-bottom: 1px solid var(--color-border); display: flex; align-items: center; justify-content: space-between; }
+    .view-tabs { display: flex; gap: 4px; background: #f4f4f5; padding: 4px; border-radius: 8px; }
+    .view-tab { padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.15s; color: var(--color-text-secondary); border: none; background: transparent; }
+    .view-tab.active { background: white; color: var(--color-text); box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); }
+
+    /* Note List */
+    .note-list { padding: 12px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .note-item { padding: 14px; border-radius: 10px; cursor: pointer; transition: all 0.15s; border: 1px solid transparent; }
+    .note-item:hover { background: #f9fafb; }
+    .note-item.active { background: #eef2ff; border-color: rgba(99, 102, 241, 0.3); }
+    .note-title { font-size: 13px; font-weight: 500; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+    .note-preview { font-size: 12px; color: var(--color-text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.5; }
+    .note-meta { font-size: 11px; color: var(--color-text-muted); margin-top: 8px; }
+
+    /* Note Detail */
+    .note-detail { padding: 20px; display: none; flex-direction: column; height: 100%; }
+    .note-detail.active { display: flex; }
+    .note-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .note-tag { padding: 4px 10px; background: #eef2ff; color: var(--color-primary); border-radius: 6px; font-size: 12px; }
+    .note-detail-title { font-size: 16px; font-weight: 500; margin-bottom: 8px; }
+    .note-detail-time { font-size: 12px; color: var(--color-text-muted); margin-bottom: 16px; }
+    .note-detail-content { flex: 1; font-size: 14px; line-height: 1.8; overflow-y: auto; }
+    .note-detail-actions { display: flex; gap: 8px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--color-border); }
+    .note-action { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; }
+    .note-action.edit { background: #f4f4f5; color: var(--color-text); }
+    .note-action.delete { background: #fef2f2; color: #ef4444; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: #18181b; color: white; padding: 12px 20px; border-radius: 8px; font-size: 13px; opacity: 0; transition: all 0.3s ease; z-index: 1000; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* Empty */
+    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--color-text-muted); padding: 40px; text-align: center; }
+    .empty-icon { width: 64px; height: 64px; background: #f4f4f5; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; font-size: 28px; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 3px; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header"><div class="logo"><div class="logo-icon">忆</div><span>忆流</span></div></div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">记录</div>
+          <div class="nav-item active" onclick="showPanel(0)">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg><span>即时灵感</span>
+          </div>
+          <div class="nav-item" onclick="showPanel(1)">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg><span>写笔记</span>
+          </div>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">工具</div>
+          <div class="nav-item" onclick="showPanel(2)">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span>知识库</span>
+          </div>
+          <div class="nav-item" onclick="showPanel(3)">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>语义搜索</span>
+          </div>
+          <div class="nav-item" onclick="showPanel(4)">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>导出备份</span>
+          </div>
+        </div>
+        <div class="nav-section" style="margin-top: auto;">
+          <div class="nav-item" onclick="showPanel(5)">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>设置</span>
+          </div>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Panel 0: 即时灵感 -->
+    <section class="panel active" id="panel-0">
+      <header class="panel-header"><div><div class="panel-title">即时灵感</div><div class="panel-subtitle">快速记录想法，AI 自动整理</div></div></header>
+      <div class="panel-content" id="chat-messages" style="padding: 24px;">
+        <div class="message">
+          <div class="message-avatar user">我</div>
+          <div class="message-content"><div class="message-label">你</div><div class="message-text"><p>开会被问到项目的进展，需要准备一个清晰的汇报。明天上午 10 点前要发给项目经理。</p></div></div>
+        </div>
+        <div class="message">
+          <div class="message-avatar ai">AI</div>
+          <div class="message-content"><div class="message-label">忆流</div><div class="message-text"><p>已保存！</p><blockquote>📝 <strong>会议记录：项目进展汇报</strong><br>🏷️ <em>#会议 #项目 #待办</em></blockquote></div></div>
+        </div>
+      </div>
+      <div class="input-area">
+        <div class="input-container">
+          <div class="input-wrapper"><textarea class="chat-input" id="chat-input" placeholder="记录你的想法..." rows="1"></textarea></div>
+          <button class="send-btn" onclick="sendMessage()"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9 22,2"/></svg></button>
+        </div>
+        <div class="input-hint"><span><kbd>Enter</kbd> 发送</span><span><kbd>⌘K</kbd> 快速记录</span></div>
+      </div>
+    </section>
+
+    <!-- Panel 1: 写笔记 -->
+    <section class="panel" id="panel-1">
+      <header class="panel-header"><div><div class="panel-title">写笔记</div><div class="panel-subtitle">手动输入，记录你的想法</div></div></header>
+      <div class="panel-content">
+        <div class="editor-container">
+          <div class="editor-toolbar">
+            <button class="tool-btn" title="加粗" onclick="formatText('bold')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg></button>
+            <button class="tool-btn" title="斜体" onclick="formatText('italic')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg></button>
+            <button class="tool-btn" title="标题" onclick="formatText('h2')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16"/><path d="M4 6v12"/><path d="M20 6v12"/></svg></button>
+            <button class="tool-btn" title="列表" onclick="formatText('ul')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button>
+            <button class="tool-btn" title="链接" onclick="formatText('link')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+          </div>
+          <div class="editor-content" id="editor" contenteditable="true" oninput="updateWordCount()"></div>
+          <div class="editor-footer">
+            <div class="editor-stats" id="word-count">0 字</div>
+            <button class="export-btn primary" onclick="saveNote()">保存笔记</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Panel 2: 知识库 -->
+    <section class="panel" id="panel-2">
+      <header class="panel-header"><div><div class="panel-title">知识库</div><div class="panel-subtitle">你的知识资产</div></div></header>
+      <div class="panel-content">
+        <div class="grid-cards">
+          <div class="grid-card" onclick="filterByTag('技术')"><div class="grid-card-icon">📚</div><div class="grid-card-title">技术学习</div><div class="grid-card-desc">12 篇笔记</div></div>
+          <div class="grid-card" onclick="filterByTag('工作')"><div class="grid-card-icon">💼</div><div class="grid-card-title">工作项目</div><div class="grid-card-desc">8 篇笔记</div></div>
+          <div class="grid-card" onclick="filterByTag('读书')"><div class="grid-card-icon">📖</div><div class="grid-card-title">读书笔记</div><div class="grid-card-desc">15 篇笔记</div></div>
+          <div class="grid-card" onclick="filterByTag('想法')"><div class="grid-card-icon">💡</div><div class="grid-card-title">想法创意</div><div class="grid-card-desc">23 篇笔记</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Panel 3: 语义搜索 -->
+    <section class="panel" id="panel-3">
+      <header class="panel-header"><div><div class="panel-title">语义搜索</div><div class="panel-subtitle">理解意图，找到你想要</div></div></header>
+      <div class="panel-content">
+        <div class="search-box">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="2" style="flex-shrink:0;margin-top:12px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="search-input" id="search-input" placeholder="搜索笔记内容..." oninput="performSearch(this.value)">
+        </div>
+        <div id="search-results" style="padding: 0 24px;">
+          <div style="font-size:12px;color:var(--color-text-muted);margin-bottom:12px;">输入关键词搜索笔记</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Panel 4: 导出备份 -->
+    <section class="panel" id="panel-4">
+      <header class="panel-header"><div><div class="panel-title">导出备份</div><div class="panel-subtitle">导出你的数据</div></div></header>
+      <div class="panel-content">
+        <div class="export-list">
+          <div class="export-item">
+            <div class="export-icon" style="background:#eef2ff;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14,2 14,8 20,8"/></svg></div>
+            <div class="export-info"><div class="export-title">Markdown</div><div class="export-desc">导出为 .md 文件</div></div>
+            <button class="export-btn primary" onclick="exportData('md')">导出</button>
+          </div>
+          <div class="export-item">
+            <div class="export-icon" style="background:#ecfdf5;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+            <div class="export-info"><div class="export-title">JSON</div><div class="export-desc">导出为 .json 文件</div></div>
+            <button class="export-btn secondary" onclick="exportData('json')">导出</button>
+          </div>
+          <div class="export-item">
+            <div class="export-icon" style="background:#fef3c7;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+            <div class="export-info"><div class="export-title">WebDAV 同步</div><div class="export-desc">同步到你的云盘</div></div>
+            <button class="export-btn secondary" onclick="showToast('WebDAV 配置功能开发中')">设置</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Panel 5: 设置 -->
+    <section class="panel" id="panel-5">
+      <header class="panel-header"><div><div class="panel-title">设置</div><div class="panel-subtitle">配置你的忆流</div></div></header>
+      <div class="panel-content" style="padding: 24px;">
+        <div style="background:white;border:1px solid var(--color-border);border-radius:12px;padding:20px;margin-bottom:16px;">
+          <div style="font-weight:500;margin-bottom:12px;">AI 配置</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--color-border);">
+            <span>OpenAI API Key</span>
+            <input type="password" placeholder="sk-..." style="border:1px solid var(--color-border);border-radius:6px;padding:8px 12px;font-size:13px;width:200px;">
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;">
+            <span>嵌入模型</span>
+            <select style="border:1px solid var(--color-border);border-radius:6px;padding:8px 12px;font-size:13px;">
+              <option>Xenova/all-MiniLM-L6-v2 (本地)</option>
+              <option>text-embedding-3-small (云端)</option>
+            </select>
+          </div>
+        </div>
+        <div style="background:white;border:1px solid var(--color-border);border-radius:12px;padding:20px;">
+          <div style="font-weight:500;margin-bottom:12px;">数据</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;">
+            <span>数据目录</span>
+            <span style="color:var(--color-text-muted);font-size:13px;">~/Library/Application Support/yiliu</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Panel -->
+    <aside class="right-panel">
+      <header class="right-header">
+        <div class="panel-title" id="right-title">笔记列表</div>
+        <div class="view-tabs">
+          <button class="view-tab active" onclick="toggleRightView('list')">列表</button>
+          <button class="view-tab" onclick="toggleRightView('detail')">详情</button>
+        </div>
+      </header>
+
+      <!-- List View -->
+      <div class="note-list" id="view-list">
+        <div class="note-item active" onclick="selectNote(0)">
+          <div class="note-title">开会被问到项目的进展</div>
+          <div class="note-preview">需要准备一个清晰的汇报。明天上午 10 点前要发给项目经理...</div>
+          <div class="note-meta">10:30 · #会议</div>
+        </div>
+        <div class="note-item" onclick="selectNote(1)">
+          <div class="note-title">CRDT 学习笔记</div>
+          <div class="note-preview">CRDT（Conflict-free Replicated Data Types）是一种用于分布式系统的数据结构...</div>
+          <div class="note-meta">09:15 · #技术</div>
+        </div>
+        <div class="note-item" onclick="selectNote(2)">
+          <div class="note-title">月度总结计划</div>
+          <div class="note-preview">可以做一个月度总结，把这个月的学习和项目经验整理成文档...</div>
+          <div class="note-meta">昨天 · #想法</div>
+        </div>
+        <div class="note-item" onclick="selectNote(3)">
+          <div class="note-title">《深度工作》读书笔记</div>
+          <div class="note-preview">专注是21世纪最稀缺的能力。在一个充满干扰的世界里，能够深度工作的人具有巨大优势...</div>
+          <div class="note-meta">3月20日 · #读书</div>
+        </div>
+      </div>
+
+      <!-- Detail View -->
+      <div class="note-detail" id="view-detail">
+        <div class="note-tags"><span class="note-tag">#会议</span><span class="note-tag">#项目</span></div>
+        <div class="note-detail-title">开会被问到项目的进展</div>
+        <div class="note-detail-time">创建于 2026-03-24 10:30 · 更新于 2026-03-24 10:30</div>
+        <div class="note-detail-content">
+          <p>开会被问到项目的进展，需要准备一个清晰的汇报。明天上午 10 点前要发给项目经理。</p>
+          <p style="margin-top:16px;color:var(--color-text-secondary);">—— 会议要点总结 ——</p>
+          <ul style="margin:12px 0;padding-left:20px;">
+            <li>当前项目进度：已完成 80%</li>
+            <li>遇到的问题：需要更多测试资源</li>
+            <li>下一步计划：完成测试并上线</li>
+          </ul>
+        </div>
+        <div class="note-detail-actions">
+          <button class="note-action edit" onclick="editCurrentNote()">编辑</button>
+          <button class="note-action delete" onclick="deleteCurrentNote()">删除</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // Notes data
+    let notes = [
+      { id: 0, title: '开会被问到项目的进展', content: '开会被问到项目的进展，需要准备一个清晰的汇报。明天上午 10 点前要发给项目经理。\n\n—— 会议要点总结 ——\n1. 当前项目进度：已完成 80%\n2. 遇到的问题：需要更多测试资源\n3. 下一步计划：完成测试并上线', tags: ['会议', '项目'], time: '10:30', date: '今天' },
+      { id: 1, title: 'CRDT 学习笔记', content: 'CRDT（Conflict-free Replicated Data Types）是一种用于分布式系统的数据结构，可以在没有协调的情况下自动解决冲突。', tags: ['技术', '学习'], time: '09:15', date: '今天' },
+      { id: 2, title: '月度总结计划', content: '可以做一个月度总结，把这个月的学习和项目经验整理成文档。', tags: ['想法'], time: '昨天', date: '昨天' },
+      { id: 3, title: '《深度工作》读书笔记', content: '专注是21世纪最稀缺的能力。在一个充满干扰的世界里，能够深度工作的人具有巨大优势。', tags: ['读书', '认知'], time: '3月20日', date: '3月20日' }
+    ];
+    let currentNoteId = 0;
+
+    // Navigation
+    function showPanel(index) {
+      document.querySelectorAll('.nav-item').forEach((item, i) => {
+        if (i < 6) item.classList.toggle('active', i === index);
+      });
+      document.querySelectorAll('.panel[id^="panel-"]').forEach((panel, i) => {
+        panel.classList.toggle('active', i === index);
+      });
+    }
+
+    // Right panel toggle
+    function toggleRightView(view) {
+      document.querySelectorAll('.view-tab').forEach(tab => tab.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('view-list').style.display = view === 'list' ? 'flex' : 'none';
+      document.getElementById('view-detail').style.display = view === 'detail' ? 'flex' : 'none';
+      document.getElementById('right-title').textContent = view === 'list' ? '笔记列表' : '笔记详情';
+    }
+
+    // Select note
+    function selectNote(id) {
+      currentNoteId = id;
+      document.querySelectorAll('.note-item').forEach((item, i) => {
+        item.classList.toggle('active', i === id);
+      });
+      toggleRightView('detail');
+      const note = notes[id];
+      document.querySelector('#view-detail .note-tags').innerHTML = note.tags.map(t => `<span class="note-tag">#${t}</span>`).join('');
+      document.querySelector('#view-detail .note-detail-title').textContent = note.title;
+      document.querySelector('#view-detail .note-detail-content').innerHTML = note.content.replace(/\n/g, '<br>').replace(/—— (.+) ——/, '<p style="margin-top:16px;color:var(--color-text-secondary);">—— $1 ——</p>');
+    }
+
+    // Chat input
+    const chatInput = document.getElementById('chat-input');
+    chatInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 160) + 'px';
+    });
+    chatInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    function sendMessage() {
+      const content = chatInput.value.trim();
+      if (!content) return;
+
+      const messages = document.getElementById('chat-messages');
+      const time = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+
+      // Add user message
+      const userMsg = document.createElement('div');
+      userMsg.className = 'message';
+      userMsg.innerHTML = `<div class="message-avatar user">我</div><div class="message-content"><div class="message-label">你</div><div class="message-text"><p>${escapeHtml(content)}</p></div></div>`;
+      messages.appendChild(userMsg);
+
+      // Simulate AI response
+      setTimeout(() => {
+        const tags = ['#记录', '#想法'];
+        const aiMsg = document.createElement('div');
+        aiMsg.className = 'message';
+        aiMsg.innerHTML = `<div class="message-avatar ai">AI</div><div class="message-content"><div class="message-label">忆流</div><div class="message-text"><p>已保存！</p><blockquote>📝 <strong>已自动添加标签</strong><br>🏷️ <em>${tags.join(' ')}</em></blockquote></div></div>`;
+        messages.appendChild(aiMsg);
+        messages.scrollTop = messages.scrollHeight;
+
+        // Add to notes
+        notes.unshift({ id: notes.length, title: content.slice(0, 20) + '...', content: content, tags: tags.map(t => t.replace('#', '')), time: time, date: '今天' });
+        refreshNoteList();
+      }, 500);
+
+      chatInput.value = '';
+      chatInput.style.height = '56px';
+      messages.scrollTop = messages.scrollHeight;
+      showToast('笔记已保存');
+    }
+
+    // Editor
+    const editor = document.getElementById('editor');
+    function updateWordCount() {
+      const text = editor.innerText || '';
+      const count = text.length;
+      document.getElementById('word-count').textContent = count + ' 字';
+    }
+
+    function formatText(format) {
+      document.execCommand(format, false, null);
+      editor.focus();
+    }
+
+    function saveNote() {
+      const content = editor.innerText.trim();
+      if (!content) {
+        showToast('请先输入内容');
+        return;
+      }
+      const time = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+      notes.unshift({ id: notes.length, title: content.slice(0, 20) + '...', content: content, tags: [], time: time, date: '今天' });
+      refreshNoteList();
+      editor.innerText = '';
+      updateWordCount();
+      showToast('笔记已保存');
+    }
+
+    // Note list
+    function refreshNoteList() {
+      const list = document.getElementById('view-list');
+      list.innerHTML = notes.map((note, i) => `
+        <div class="note-item ${i === currentNoteId ? 'active' : ''}" onclick="selectNote(${i})">
+          <div class="note-title">${escapeHtml(note.title)}</div>
+          <div class="note-preview">${escapeHtml(note.content.slice(0, 50))}...</div>
+          <div class="note-meta">${note.time} · #${note.tags[0] || '无标签'}</div>
+        </div>
+      `).join('');
+    }
+
+    // Search
+    function performSearch(query) {
+      const results = document.getElementById('search-results');
+      if (!query.trim()) {
+        results.innerHTML = '<div style="font-size:12px;color:var(--color-text-muted);margin-bottom:12px;">输入关键词搜索笔记</div>';
+        return;
+      }
+      const filtered = notes.filter(n => n.content.includes(query) || n.title.includes(query));
+      if (filtered.length === 0) {
+        results.innerHTML = '<div style="font-size:12px;color:var(--color-text-muted);">未找到相关笔记</div>';
+        return;
+      }
+      results.innerHTML = `<div style="font-size:12px;color:var(--color-text-muted);margin-bottom:12px;">找到 ${filtered.length} 条相关笔记</div>` +
+        filtered.map(note => `
+          <div class="note-item" onclick="selectNote(${note.id})">
+            <div class="note-title">${escapeHtml(note.title)}</div>
+            <div class="note-preview">${escapeHtml(note.content.slice(0, 50))}...</div>
+            <div class="match-score">匹配</div>
+          </div>
+        `).join('');
+    }
+
+    // Knowledge base filter
+    function filterByTag(tag) {
+      showPanel(3);
+      document.getElementById('search-input').value = tag;
+      performSearch(tag);
+    }
+
+    // Export
+    function exportData(format) {
+      if (format === 'md') {
+        let md = '# 忆流笔记导出\n\n';
+        notes.forEach(note => {
+          md += `## ${note.title}\n\n${note.content}\n\n---\n\n`;
+        });
+        const blob = new Blob([md], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'yiliu-notes.md';
+        a.click();
+        showToast('Markdown 导出成功');
+      } else {
+        const json = JSON.stringify(notes, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'yiliu-notes.json';
+        a.click();
+        showToast('JSON 导出成功');
+      }
+    }
+
+    // Edit/Delete
+    function editCurrentNote() {
+      showPanel(1);
+      editor.innerText = notes[currentNoteId].content;
+      updateWordCount();
+      showToast('已加载笔记到编辑器');
+    }
+
+    function deleteCurrentNote() {
+      if (confirm('确定要删除这条笔记吗？')) {
+        notes.splice(currentNoteId, 1);
+        currentNoteId = 0;
+        refreshNoteList();
+        toggleRightView('list');
+        showToast('笔记已删除');
+      }
+    }
+
+    // Toast
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = 'toast show';
+      setTimeout(() => { toast.className = 'toast'; }, 2000);
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        showPanel(0);
+        chatInput.focus();
+      }
+    });
+  </script>
+</body>
+</html>
