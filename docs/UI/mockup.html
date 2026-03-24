@@ -19,7 +19,8 @@
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--color-bg); color: var(--color-text); overflow: hidden; height: 100vh; }
-    .app-container { display: grid; grid-template-columns: 200px 1fr 320px; height: 100vh; width: 100vw; }
+    .app-container { display: grid; grid-template-columns: 200px 1fr 320px; height: 100vh; width: 100vw; transition: grid-template-columns 0.2s ease; }
+    .app-container.panel-hide-right { grid-template-columns: 200px 1fr 0px; }
 
     /* Sidebar */
     .sidebar { background: var(--color-bg-card); border-right: 1px solid var(--color-border); display: flex; flex-direction: column; }
@@ -52,6 +53,19 @@
     .message-label { font-size: 12px; color: var(--color-text-muted); margin-bottom: 6px; }
     .message-text { font-size: 14px; line-height: 1.7; color: var(--color-text); }
     .message-text blockquote { border-left: 3px solid var(--color-primary); padding-left: 12px; margin: 10px 0; color: var(--color-text-secondary); font-size: 13px; background: #f9fafb; padding: 12px; border-radius: 0 8px 8px 0; }
+    .message:hover .message-edit-hint { opacity: 1; }
+    .message-edit-hint { position: absolute; right: 0; top: 0; font-size: 11px; color: var(--color-text-muted); opacity: 0; transition: opacity 0.2s; cursor: pointer; }
+    .message.editing .message-edit-hint { display: none; }
+    .message-edit-box { display: none; }
+    .message.editing .message-text { display: none; }
+    .message.editing .message-edit-box { display: block; }
+    .edit-input { width: 100%; min-height: 60px; padding: 10px; border: 1px solid var(--color-primary); border-radius: 8px; font-size: 14px; font-family: inherit; resize: none; outline: none; margin-bottom: 8px; }
+    .edit-tags { display: flex; gap: 6px; flex-wrap: wrap; font-size: 12px; margin-bottom: 8px; }
+    .edit-tag { padding: 4px 8px; background: #eef2ff; color: var(--color-primary); border-radius: 4px; }
+    .edit-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .edit-btn { padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; border: none; }
+    .edit-btn.cancel { background: #f4f4f5; color: var(--color-text-secondary); }
+    .edit-btn.save { background: var(--color-primary); color: white; }
 
     /* Input */
     .input-area { padding: 20px 24px; background: var(--color-bg-card); border-top: 1px solid var(--color-border); }
@@ -75,6 +89,38 @@
     .editor-content { flex: 1; padding: 20px; font-size: 15px; line-height: 1.8; outline: none; overflow-y: auto; white-space: pre-wrap; }
     .editor-footer { padding: 12px 16px; border-top: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; }
     .editor-stats { font-size: 12px; color: var(--color-text-muted); }
+
+    /* Write Note Header - Mode Indicator */
+    .write-mode-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--color-bg-card); border-bottom: 1px solid var(--color-border); }
+    .write-mode-badge { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; }
+    .write-mode-badge.new { color: var(--color-primary); }
+    .write-mode-badge.continue { color: var(--color-text-secondary); background: #f9fafb; padding: 6px 12px; border-radius: 8px; }
+    .write-mode-badge .note-title-ref { font-weight: 400; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .write-mode-actions { display: flex; gap: 8px; }
+    .write-mode-btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; cursor: pointer; border: none; }
+    .write-mode-btn.primary { background: var(--color-primary); color: white; }
+    .write-mode-btn.secondary { background: #f4f4f5; color: var(--color-text); }
+
+    /* Tags - Manual vs AI */
+    .note-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .note-tag { padding: 4px 10px; border-radius: 6px; font-size: 12px; }
+    .note-tag.manual { background: #eef2ff; color: var(--color-primary); }
+    .note-tag.ai-recommend { background: #f1f5f9; color: var(--color-text-secondary); border: 1px dashed #cbd5e1; cursor: pointer; }
+    .note-tag.ai-recommend:hover { background: #e2e8f0; }
+    .note-tag.ai-recommend .remove { margin-left: 4px; opacity: 0.6; }
+    .note-tag.ai-recommend .remove:hover { opacity: 1; }
+
+    /* Tag Input Area in Editor */
+    .tag-input-area { padding: 8px 16px; border-top: 1px solid var(--color-border); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: #fafafa; }
+    .tag-input-label { font-size: 11px; color: var(--color-text-muted); }
+    .tag-input-area .manual-tag { background: #eef2ff; color: var(--color-primary); padding: 3px 8px; border-radius: 4px; font-size: 12px; }
+    .tag-input-area .ai-tag { background: #f1f5f9; color: var(--color-text-secondary); padding: 3px 8px; border-radius: 4px; font-size: 12px; border: 1px dashed #cbd5e1; }
+    .tag-input-area .ai-tag .remove { margin-left: 4px; cursor: pointer; }
+
+    /* Knowledge Library Tag Filters */
+    .tag-filter { padding: 6px 14px; border-radius: 16px; font-size: 12px; border: 1px solid var(--color-border); background: white; color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; }
+    .tag-filter:hover { border-color: var(--color-primary); color: var(--color-primary); }
+    .tag-filter.active { background: var(--color-primary); color: white; border-color: var(--color-primary); }
 
     /* Grid Cards */
     .grid-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; padding: 24px; }
@@ -164,9 +210,6 @@
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span>知识库</span>
           </div>
           <div class="nav-item" onclick="showPanel(3)">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>语义搜索</span>
-          </div>
-          <div class="nav-item" onclick="showPanel(4)">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>导出备份</span>
           </div>
         </div>
@@ -184,7 +227,21 @@
       <div class="panel-content" id="chat-messages" style="padding: 24px;">
         <div class="message">
           <div class="message-avatar user">我</div>
-          <div class="message-content"><div class="message-label">你</div><div class="message-text"><p>开会被问到项目的进展，需要准备一个清晰的汇报。明天上午 10 点前要发给项目经理。</p></div></div>
+          <div class="message-content">
+            <div class="message-label">你</div>
+            <div class="message-text" ondblclick="enterEditMode(0)"><p>开会被问到项目的进展，需要准备一个清晰的汇报。明天上午 10 点前要发给项目经理。</p></div>
+            <div class="message-edit-box">
+              <textarea class="edit-input" id="edit-input-0">开会被问到项目的进展，需要准备一个清晰的汇报。明天上午 10 点前要发给项目经理。</textarea>
+              <div class="edit-tags">
+                <span class="edit-tag">#会议</span>
+                <span class="edit-tag">#项目</span>
+              </div>
+              <div class="edit-actions">
+                <button class="edit-btn cancel" onclick="cancelEdit(0)">取消</button>
+                <button class="edit-btn save" onclick="saveEdit(0)">保存</button>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="message">
           <div class="message-avatar ai">AI</div>
@@ -203,6 +260,15 @@
     <!-- Panel 1: 写笔记 -->
     <section class="panel" id="panel-1">
       <header class="panel-header"><div><div class="panel-title">写笔记</div><div class="panel-subtitle">手动输入，记录你的想法</div></div></header>
+      <div class="write-mode-bar" id="write-mode-bar" style="display: none;">
+        <div class="write-mode-badge new" id="write-mode-badge">
+          <span>🆕</span><span id="write-mode-text">新建笔记</span>
+        </div>
+        <div class="write-mode-actions">
+          <button class="write-mode-btn secondary" onclick="discardNote()">放弃</button>
+          <button class="write-mode-btn primary" onclick="saveNote()">保存</button>
+        </div>
+      </div>
       <div class="panel-content">
         <div class="editor-container">
           <div class="editor-toolbar">
@@ -213,43 +279,48 @@
             <button class="tool-btn" title="链接" onclick="formatText('link')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
           </div>
           <div class="editor-content" id="editor" contenteditable="true" oninput="updateWordCount()"></div>
+          <div class="tag-input-area" id="tag-input-area">
+            <span class="tag-input-label">标签:</span>
+            <span class="manual-tag">#技术</span>
+            <span class="manual-tag">#学习</span>
+            <span class="ai-tag" onclick="acceptAiTag(this)">推荐 #项目 <span class="remove" onclick="removeAiTag(this)">×</span></span>
+          </div>
           <div class="editor-footer">
             <div class="editor-stats" id="word-count">0 字</div>
-            <button class="export-btn primary" onclick="saveNote()">保存笔记</button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Panel 2: 知识库 -->
+    <!-- Panel 2: 知识库 (整合搜索) -->
     <section class="panel" id="panel-2">
       <header class="panel-header"><div><div class="panel-title">知识库</div><div class="panel-subtitle">你的知识资产</div></div></header>
       <div class="panel-content">
-        <div class="grid-cards">
-          <div class="grid-card" onclick="filterByTag('技术')"><div class="grid-card-icon">📚</div><div class="grid-card-title">技术学习</div><div class="grid-card-desc">12 篇笔记</div></div>
-          <div class="grid-card" onclick="filterByTag('工作')"><div class="grid-card-icon">💼</div><div class="grid-card-title">工作项目</div><div class="grid-card-desc">8 篇笔记</div></div>
-          <div class="grid-card" onclick="filterByTag('读书')"><div class="grid-card-icon">📖</div><div class="grid-card-title">读书笔记</div><div class="grid-card-desc">15 篇笔记</div></div>
-          <div class="grid-card" onclick="filterByTag('想法')"><div class="grid-card-icon">💡</div><div class="grid-card-title">想法创意</div><div class="grid-card-desc">23 篇笔记</div></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Panel 3: 语义搜索 -->
-    <section class="panel" id="panel-3">
-      <header class="panel-header"><div><div class="panel-title">语义搜索</div><div class="panel-subtitle">理解意图，找到你想要</div></div></header>
-      <div class="panel-content">
-        <div class="search-box">
+        <div class="search-box" style="margin: 16px 24px;">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="2" style="flex-shrink:0;margin-top:12px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" class="search-input" id="search-input" placeholder="搜索笔记内容..." oninput="performSearch(this.value)">
+          <input type="text" class="search-input" id="knowledge-search" placeholder="搜索笔记内容..." oninput="performKnowledgeSearch(this.value)">
         </div>
-        <div id="search-results" style="padding: 0 24px;">
-          <div style="font-size:12px;color:var(--color-text-muted);margin-bottom:12px;">输入关键词搜索笔记</div>
+        <div style="padding: 0 24px 16px; display: flex; gap: 8px; flex-wrap: wrap;" id="tag-filters">
+          <button class="tag-filter active" onclick="filterByTagInKnowledge('all', this)">全部</button>
+          <button class="tag-filter" onclick="filterByTagInKnowledge('技术', this)">技术</button>
+          <button class="tag-filter" onclick="filterByTagInKnowledge('工作', this)">工作</button>
+          <button class="tag-filter" onclick="filterByTagInKnowledge('读书', this)">读书</button>
+          <button class="tag-filter" onclick="filterByTagInKnowledge('想法', this)">想法</button>
+        </div>
+        <div class="grid-cards" id="knowledge-cards">
+          <div class="grid-card" onclick="filterByTagInKnowledge('技术', document.querySelector('.tag-filter:nth-child(2)'))"><div class="grid-card-icon">📚</div><div class="grid-card-title">技术学习</div><div class="grid-card-desc">12 篇笔记</div></div>
+          <div class="grid-card" onclick="filterByTagInKnowledge('工作', document.querySelector('.tag-filter:nth-child(3)'))"><div class="grid-card-icon">💼</div><div class="grid-card-title">工作项目</div><div class="grid-card-desc">8 篇笔记</div></div>
+          <div class="grid-card" onclick="filterByTagInKnowledge('读书', document.querySelector('.tag-filter:nth-child(4)'))"><div class="grid-card-icon">📖</div><div class="grid-card-title">读书笔记</div><div class="grid-card-desc">15 篇笔记</div></div>
+          <div class="grid-card" onclick="filterByTagInKnowledge('想法', document.querySelector('.tag-filter:nth-child(5)'))"><div class="grid-card-icon">💡</div><div class="grid-card-title">想法创意</div><div class="grid-card-desc">23 篇笔记</div></div>
+        </div>
+        <div id="knowledge-list" style="padding: 0 24px; display: none;">
+          <div style="font-size:12px;color:var(--color-text-muted);margin-bottom:12px;">找到 <span id="knowledge-result-count">0</span> 条相关笔记</div>
         </div>
       </div>
     </section>
 
-    <!-- Panel 4: 导出备份 -->
-    <section class="panel" id="panel-4">
+    <!-- Panel 3: 导出备份 -->
+    <section class="panel" id="panel-3">
       <header class="panel-header"><div><div class="panel-title">导出备份</div><div class="panel-subtitle">导出你的数据</div></div></header>
       <div class="panel-content">
         <div class="export-list">
@@ -369,6 +440,24 @@
     ];
     let currentNoteId = 0;
 
+    // Initialize right panel visibility
+    document.addEventListener('DOMContentLoaded', function() {
+      showPanel(0); // Start with 即时灵感, show right panel
+    });
+
+    // Right panel visibility config
+    const rightPanelConfig = {
+      0: { show: true },   // 即时灵感
+      1: { show: false }, // 写笔记
+      2: { show: true },  // 知识库
+      3: { show: false }, // 导出备份
+      4: { show: false }, // 设置
+    };
+
+    // Write mode: 'new' or 'continue'
+    let writeMode = 'new';
+    let continueNoteTitle = '';
+
     // Navigation
     function showPanel(index) {
       document.querySelectorAll('.nav-item').forEach((item, i) => {
@@ -377,6 +466,32 @@
       document.querySelectorAll('.panel[id^="panel-"]').forEach((panel, i) => {
         panel.classList.toggle('active', i === index);
       });
+      
+      // Handle right panel visibility
+      const appContainer = document.querySelector('.app-container');
+      const config = rightPanelConfig[index];
+      if (config && config.show) {
+        appContainer.classList.remove('panel-hide-right');
+      } else {
+        appContainer.classList.add('panel-hide-right');
+      }
+
+      // Handle write mode bar
+      const writeModeBar = document.getElementById('write-mode-bar');
+      if (index === 1) {
+        writeModeBar.style.display = 'flex';
+      } else {
+        writeModeBar.style.display = 'none';
+      }
+      
+      // Reset knowledge search when leaving knowledge panel
+      if (index !== 2) {
+        document.getElementById('knowledge-search').value = '';
+        document.getElementById('knowledge-list').style.display = 'none';
+        document.getElementById('knowledge-cards').style.display = 'grid';
+        document.querySelectorAll('.tag-filter').forEach(b => b.classList.remove('active'));
+        document.querySelector('.tag-filter:first-child').classList.add('active');
+      }
     }
 
     // Right panel toggle
@@ -396,7 +511,10 @@
       });
       toggleRightView('detail');
       const note = notes[id];
-      document.querySelector('#view-detail .note-tags').innerHTML = note.tags.map(t => `<span class="note-tag">#${t}</span>`).join('');
+      // Show mixed tags: manual + AI recommend
+      const manualTags = note.tags.map(t => `<span class="note-tag manual">#${t}</span>`).join('');
+      const aiTags = `<span class="note-tag ai-recommend" onclick="acceptAiTagFromDetail(this)">推荐 #项目 <span class="remove" onclick="removeAiTagFromDetail(event)">×</span></span>`;
+      document.querySelector('#view-detail .note-tags').innerHTML = manualTags + aiTags;
       document.querySelector('#view-detail .note-detail-title').textContent = note.title;
       document.querySelector('#view-detail .note-detail-content').innerHTML = note.content.replace(/\n/g, '<br>').replace(/—— (.+) ——/, '<p style="margin-top:16px;color:var(--color-text-secondary);">—— $1 ——</p>');
     }
@@ -447,6 +565,72 @@
       showToast('笔记已保存');
     }
 
+    // Chat message edit functions
+    let messageOriginalContent = {};
+    
+    function enterEditMode(index) {
+      const msgEl = document.querySelectorAll('.message')[index];
+      if (!msgEl || !msgEl.querySelector('.message-avatar.user')) return;
+      
+      // Store original content
+      const textEl = msgEl.querySelector('.message-text p');
+      messageOriginalContent[index] = textEl ? textEl.textContent : '';
+      
+      // Get current tags from note
+      const note = notes.find(n => n.content.includes(messageOriginalContent[index]));
+      const tags = note ? note.tags : ['记录', '想法'];
+      
+      // Build edit box HTML
+      const editBox = msgEl.querySelector('.message-edit-box');
+      const editInput = editBox.querySelector('.edit-input');
+      const editTags = editBox.querySelector('.edit-tags');
+      
+      editInput.value = messageOriginalContent[index];
+      editTags.innerHTML = tags.map(t => `<span class="edit-tag">#${t}</span>`).join('');
+      
+      // Show edit mode
+      msgEl.classList.add('editing');
+    }
+
+    function cancelEdit(index) {
+      const msgEl = document.querySelectorAll('.message')[index];
+      if (msgEl) {
+        msgEl.classList.remove('editing');
+      }
+    }
+
+    function saveEdit(index) {
+      const msgEl = document.querySelectorAll('.message')[index];
+      if (!msgEl) return;
+      
+      const newContent = msgEl.querySelector('.edit-input').value.trim();
+      if (!newContent) {
+        showToast('内容不能为空');
+        return;
+      }
+      
+      // Simulate AI regenerating tags
+      const newTags = ['记录', '更新'];
+      
+      // Update display
+      msgEl.querySelector('.message-text p').textContent = newContent;
+      msgEl.querySelector('.edit-tags').innerHTML = newTags.map(t => `<span class="edit-tag">#${t}</span>`).join('');
+      
+      // Update note in data
+      const oldContent = messageOriginalContent[index];
+      const noteIndex = notes.findIndex(n => n.content.includes(oldContent));
+      if (noteIndex !== -1) {
+        notes[noteIndex].content = newContent;
+        notes[noteIndex].tags = newTags;
+        notes[noteIndex].title = newContent.slice(0, 20) + (newContent.length > 20 ? '...' : '');
+        refreshNoteList();
+      }
+      
+      // Exit edit mode
+      msgEl.classList.remove('editing');
+      showToast('已更新');
+    }
+
     // Editor
     const editor = document.getElementById('editor');
     function updateWordCount() {
@@ -460,6 +644,45 @@
       editor.focus();
     }
 
+    // Write mode management
+    function setWriteMode(mode, noteTitle = '') {
+      writeMode = mode;
+      continueNoteTitle = noteTitle;
+      const badge = document.getElementById('write-mode-badge');
+      const text = document.getElementById('write-mode-text');
+      
+      if (mode === 'new') {
+        badge.className = 'write-mode-badge new';
+        text.textContent = '新建笔记';
+        editor.innerText = '';
+        updateWordCount();
+      } else {
+        badge.className = 'write-mode-badge continue';
+        text.innerHTML = `续写：<span class="note-title-ref">${escapeHtml(noteTitle)}</span>`;
+      }
+    }
+
+    function discardNote() {
+      if (writeMode === 'continue') {
+        showToast('已放弃编辑');
+      }
+      setWriteMode('new');
+      showPanel(0);
+    }
+
+    // AI tag management
+    function acceptAiTag(el) {
+      el.className = 'manual-tag';
+      el.onclick = null;
+      el.innerHTML = el.innerText.replace('推荐 ', '');
+      showToast('已采纳标签');
+    }
+
+    function removeAiTag(el) {
+      el.parentElement.remove();
+      showToast('已忽略推荐标签');
+    }
+
     function saveNote() {
       const content = editor.innerText.trim();
       if (!content) {
@@ -467,11 +690,14 @@
         return;
       }
       const time = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-      notes.unshift({ id: notes.length, title: content.slice(0, 20) + '...', content: content, tags: [], time: time, date: '今天' });
+      const title = content.slice(0, 20) + (content.length > 20 ? '...' : '');
+      
+      // If continuing, keep original note and create new one
+      notes.unshift({ id: notes.length, title: title, content: content, tags: ['技术', '学习'], time: time, date: '今天' });
       refreshNoteList();
-      editor.innerText = '';
-      updateWordCount();
-      showToast('笔记已保存');
+      
+      setWriteMode('new');
+      showToast(writeMode === 'continue' ? '已保存为新笔记' : '笔记已保存');
     }
 
     // Note list
@@ -508,11 +734,91 @@
         `).join('');
     }
 
-    // Knowledge base filter
+    // Knowledge base filter (deprecated - kept for compatibility)
     function filterByTag(tag) {
-      showPanel(3);
-      document.getElementById('search-input').value = tag;
-      performSearch(tag);
+      showPanel(2);
+      filterByTagInKnowledge(tag, document.querySelector('.tag-filter:nth-child(2)'));
+    }
+
+    // Knowledge library search and filter
+    let currentKnowledgeFilter = 'all';
+    
+    function performKnowledgeSearch(query) {
+      const listEl = document.getElementById('knowledge-list');
+      const cardsEl = document.getElementById('knowledge-cards');
+      const resultCountEl = document.getElementById('knowledge-result-count');
+      
+      if (!query.trim()) {
+        // No search query, show cards
+        listEl.style.display = 'none';
+        cardsEl.style.display = 'grid';
+        return;
+      }
+      
+      // Show search results
+      cardsEl.style.display = 'none';
+      listEl.style.display = 'block';
+      
+      // Filter notes by query
+      const filtered = notes.filter(n => 
+        n.content.includes(query) || n.title.includes(query) || 
+        n.tags.some(t => t.includes(query))
+      );
+      
+      resultCountEl.textContent = filtered.length;
+      
+      if (filtered.length === 0) {
+        listEl.innerHTML = '<div style="font-size:12px;color:var(--color-text-muted);">未找到相关笔记</div>';
+        return;
+      }
+      
+      listEl.innerHTML = '<div style="font-size:12px;color:var(--color-text-muted);margin-bottom:12px;">找到 <span id="knowledge-result-count">' + filtered.length + '</span> 条相关笔记</div>' +
+        filtered.map(note => `
+          <div class="note-item" onclick="selectNote(${note.id})">
+            <div class="note-title">${escapeHtml(note.title)}</div>
+            <div class="note-preview">${escapeHtml(note.content.slice(0, 50))}...</div>
+            <div class="note-meta">${note.time} · #${note.tags[0] || '无标签'}</div>
+          </div>
+        `).join('');
+    }
+
+    function filterByTagInKnowledge(tag, btn) {
+      // Update active button
+      document.querySelectorAll('.tag-filter').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      
+      currentKnowledgeFilter = tag;
+      const listEl = document.getElementById('knowledge-list');
+      const cardsEl = document.getElementById('knowledge-cards');
+      
+      if (tag === 'all') {
+        // Show cards for all
+        listEl.style.display = 'none';
+        cardsEl.style.display = 'grid';
+        return;
+      }
+      
+      // Filter notes by tag
+      const filtered = notes.filter(n => n.tags.includes(tag));
+      
+      if (filtered.length === 0) {
+        cardsEl.style.display = 'none';
+        listEl.style.display = 'block';
+        listEl.innerHTML = '<div style="font-size:12px;color:var(--color-text-muted);">该分类下暂无笔记</div>';
+        return;
+      }
+      
+      // Show filtered list
+      cardsEl.style.display = 'none';
+      listEl.style.display = 'block';
+      listEl.innerHTML = '<div style="font-size:12px;color:var(--color-text-muted);margin-bottom:12px;">' + tag + ' 分类 · ' + filtered.length + ' 篇笔记</div>' +
+        filtered.map(note => `
+          <div class="note-item" onclick="selectNote(${note.id})">
+            <div class="note-title">${escapeHtml(note.title)}</div>
+            <div class="note-preview">${escapeHtml(note.content.slice(0, 50))}...</div>
+            <div class="note-meta">${note.time} · #${note.tags[0] || '无标签'}</div>
+          </div>
+        `).join('');
     }
 
     // Export
@@ -543,9 +849,11 @@
 
     // Edit/Delete
     function editCurrentNote() {
-      showPanel(1);
-      editor.innerText = notes[currentNoteId].content;
+      const note = notes[currentNoteId];
+      setWriteMode('continue', note.title);
+      editor.innerText = note.content;
       updateWordCount();
+      showPanel(1);
       showToast('已加载笔记到编辑器');
     }
 
@@ -557,6 +865,36 @@
         toggleRightView('list');
         showToast('笔记已删除');
       }
+    }
+
+    // Update selectNote to show proper tag styling
+    function selectNote(id) {
+      currentNoteId = id;
+      document.querySelectorAll('.note-item').forEach((item, i) => {
+        item.classList.toggle('active', i === id);
+      });
+      toggleRightView('detail');
+      const note = notes[id];
+      // Show mixed tags: manual + AI recommend
+      const tagsHtml = `
+        <span class="note-tag manual">#${note.tags[0] || '无'}</span>
+        <span class="note-tag manual">#${note.tags[1] || ''}</span>
+        <span class="note-tag ai-recommend" onclick="acceptAiTagFromDetail(this)">推荐 #项目 <span class="remove" onclick="removeAiTagFromDetail(event)">×</span></span>
+      `;
+      document.querySelector('#view-detail .note-tags').innerHTML = tagsHtml;
+      document.querySelector('#view-detail .note-detail-title').textContent = note.title;
+      document.querySelector('#view-detail .note-detail-content').innerHTML = note.content.replace(/\n/g, '<br>').replace(/—— (.+) ——/, '<p style="margin-top:16px;color:var(--color-text-secondary);">—— $1 ——</p>');
+    }
+
+    function acceptAiTagFromDetail(el) {
+      el.className = 'note-tag manual';
+      el.onclick = null;
+      el.innerHTML = el.innerText.replace('推荐 ', '');
+    }
+
+    function removeAiTagFromDetail(e) {
+      e.stopPropagation();
+      e.target.parentElement.remove();
     }
 
     // Toast

@@ -6,7 +6,7 @@
 
 ## 一、组件概览
 
-| 组件 | 说明 | 状态 |
+| Component | 说明 | 状态 |
 |------|------|------|
 | Button | 按钮 | ✅ |
 | Input | 输入框 | ✅ |
@@ -18,6 +18,8 @@
 | Toast | 提示 | ✅ |
 | Modal | 模态框 | ✅ |
 | Skeleton | 骨架屏 | ✅ |
+| WriteModeBar | 写笔记模式状态栏 | 🆕 新增 |
+| TagBadge | 标签徽章（手动/AI推荐） | 🆕 新增 |
 
 ---
 
@@ -399,4 +401,74 @@ export function SearchPage() {
 
 ---
 
-*最后更新: 2026-03-23*
+## 八、新增组件（V2.0 优化）
+
+### 8.1 WriteModeBar 写笔记模式状态栏
+
+显示当前是「新建」还是「续写」模式
+
+```tsx
+import { WriteModeBar } from '@/components/write/write-mode-bar';
+
+<WriteModeBar 
+  mode="new" | "continue"
+  noteTitle="笔记标题"
+  onSave={handleSave}
+  onDiscard={handleDiscard}
+/>
+```
+
+**样式**:
+
+```
+🆕 新建笔记                    [放弃] [保存]
+```
+
+或
+
+```
+✏️ 续写：项目需求分析              [放弃] [保存]
+```
+
+**属性**:
+
+| 属性 | 类型 | 说明 |
+|------|------|------|
+| mode | 'new' \| 'continue' | 当前模式 |
+| noteTitle | string | 续写时的笔记标题 |
+| onSave | () => void | 保存回调 |
+| onDiscard | () => void | 放弃回调 |
+
+### 8.2 TagBadge 标签徽章
+
+区分手动标签和 AI 推荐标签
+
+```tsx
+import { TagBadge } from '@/components/tags/tag-badge';
+
+// 手动标签
+<TagBadge type="manual" tag="技术" />
+
+// AI 推荐标签
+<TagBadge type="ai-recommend" tag="项目" onAccept={acceptTag} onIgnore={ignoreTag} />
+```
+
+**样式**:
+
+| 类型 | 视觉 |
+|------|------|
+| manual | 深色背景 (`#eef2ff`)，深色文字 (`#6366f1`) |
+| ai-recommend | 浅色背景 (`#f1f5f9`)，虚线边框，右侧带 × 可关闭 |
+
+**属性**:
+
+| 属性 | 类型 | 说明 |
+|------|------|------|
+| type | 'manual' \| 'ai-recommend' | 标签类型 |
+| tag | string | 标签文本 |
+| onAccept | () => void | 采纳 AI 推荐（仅 ai-recommend） |
+| onIgnore | () => void | 忽略 AI 推荐（仅 ai-recommend） |
+
+---
+
+*最后更新: 2026-03-25*
