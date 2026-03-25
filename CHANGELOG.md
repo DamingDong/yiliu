@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-03-26
+
+### Added
+- Electron 桌面应用框架
+- IPC 通信层（主进程 ↔ 渲染进程）
+- 前端 UI 界面（React + Vite）
+  - 即时灵感面板
+  - 写笔记面板
+  - 知识库面板（语义搜索）
+  - 导出备份面板
+  - 设置面板
+- 前端 API 层（封装 IPC 调用）
+- 后端编译配置（tsconfig.backend.json, tsconfig.electron.json）
+- LibSQL 数据库集成（笔记 CRUD）
+- 向量搜索集成（语义搜索）
+- AI 能力集成（摘要、标签生成）
+- 版本标签 v2.0.0
+
+### Changed
+- 项目结构重组（electron/, src/renderer/, src/storage/, src/ai/）
+- 构建流程优化（分离后端和前端编译）
+
 ## [1.2.4] - 2026-03-23
 
 ### Fixed
@@ -63,15 +85,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 版本规划
 
-### [1.3.0] - 计划中
+### [2.1.0] - 计划中
 
-- embedjs 完整集成
+- WebDAV 同步
 - 数据迁移脚本
 - 单元测试
 
-### [2.0.0] - 未来
+### [2.2.0] - 未来
 
-- WebDAV 同步
 - 网页抓取（readability）
 - PDF 处理
 - Yjs 实时同步
