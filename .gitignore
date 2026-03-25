@@ -3,8 +3,7 @@ node_modules/
 
 # Build
 dist/
-*.js
-*.js.map
+dist-electron/
 *.d.ts
 *.d.cts
 !src/**/*.ts
