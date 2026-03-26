@@ -18,7 +18,79 @@ const getDataPath = (): string => {
   return path.join(process.cwd(), 'data');
 };
 
+const CURRENT_DB_VERSION = 1;
+
 let db: Client;
+
+async function runMigrations(): Promise<void> {
+  // 创建版本表（如果不存在）
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS db_version (
+      id INTEGER PRIMARY KEY,
+      version INTEGER NOT NULL,
+      appliedAt INTEGER NOT NULL
+    )
+  `);
+
+  // 获取当前版本
+  const result = await db.execute(`SELECT version FROM db_version ORDER BY id DESC LIMIT 1`);
+  const currentVersion = result.rows.length > 0 ? Number(result.rows[0][0]) : 0;
+
+  console.log(`[yiliu] 数据库版本: ${currentVersion} -> ${CURRENT_DB_VERSION}`);
+
+  if (currentVersion < CURRENT_DB_VERSION) {
+    console.log('[yiliu] 执行数据库迁移...');
+  }
+
+  // v1: 初始版本，创建 notes 和 note_versions 表
+  if (currentVersion < 1) {
+    console.log('[yiliu] 迁移 v1: 初始版本...');
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS notes (
+        id TEXT PRIMARY KEY,
+        content TEXT NOT NULL,
+        layer TEXT DEFAULT 'L0',
+        source TEXT DEFAULT 'text',
+        url TEXT,
+        createdAt INTEGER NOT NULL,
+        updatedAt INTEGER NOT NULL,
+        wordCount INTEGER DEFAULT 0,
+        aiEnhanced TEXT,
+        embedding TEXT
+      )
+    `);
+
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS note_versions (
+        id TEXT PRIMARY KEY,
+        noteId TEXT NOT NULL,
+        content TEXT NOT NULL,
+        version INTEGER NOT NULL,
+        isMarked INTEGER DEFAULT 0,
+        markNote TEXT,
+        createdAt INTEGER NOT NULL
+      )
+    `);
+
+    // 记录版本
+    await db.execute({
+      sql: `INSERT INTO db_version (id, version, appliedAt) VALUES (?, ?, ?)`,
+      args: [1, 1, Date.now()] as InValue[]
+    });
+    console.log('[yiliu] 迁移 v1 完成');
+  }
+
+  // 未来版本迁移可以在这里添加:
+  // if (currentVersion < 2) {
+  //   console.log('[yiliu] 迁移 v2: ...');
+  //   // 执行 v2 迁移
+  //   await db.execute({ ... });
+  //   await db.execute({
+  //     sql: `INSERT INTO db_version (id, version, appliedAt) VALUES (?, ?, ?)`,
+  //     args: [2, 2, Date.now()] as InValue[]
+  //   });
+  // }
+}
 
 /**
  * 初始化数据库
@@ -35,33 +107,8 @@ export async function initDB(): Promise<void> {
     url: `file:${DB_PATH}`,
   });
 
-  // 创建表
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS notes (
-      id TEXT PRIMARY KEY,
-      content TEXT NOT NULL,
-      layer TEXT DEFAULT 'L0',
-      source TEXT DEFAULT 'text',
-      url TEXT,
-      createdAt INTEGER NOT NULL,
-      updatedAt INTEGER NOT NULL,
-      wordCount INTEGER DEFAULT 0,
-      aiEnhanced TEXT,
-      embedding TEXT
-    )
-  `);
-
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS note_versions (
-      id TEXT PRIMARY KEY,
-      noteId TEXT NOT NULL,
-      content TEXT NOT NULL,
-      version INTEGER NOT NULL,
-      isMarked INTEGER DEFAULT 0,
-      markNote TEXT,
-      createdAt INTEGER NOT NULL
-    )
-  `);
+  // 运行数据库迁移
+  await runMigrations();
 
   // 初始化向量存储
   initVectorStore(dataDir);

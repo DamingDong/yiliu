@@ -1,6 +1,6 @@
 {
   "name": "yiliu",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "忆流 - 随时捕捉、自动整理、按需浮现的 AI 笔记知识库",
   "author": "忆流团队",
   "main": "dist-electron/main.js",

@@ -21,6 +21,17 @@ export interface SearchResult {
   score: number;
 }
 
+export interface Settings {
+  apiKey: string;
+  embeddingModel: string;
+  dataPath: string;
+}
+
+export interface TestResult {
+  success: boolean;
+  message: string;
+}
+
 export interface ElectronAPI {
   getAppPath: () => Promise<string>;
   onFocusInput: (callback: () => void) => () => void;
@@ -40,6 +51,13 @@ export interface ElectronAPI {
   // 版本操作
   getVersions: (noteId: string) => Promise<any[]>;
   revertToVersion: (noteId: string, version: number) => Promise<Note | null>;
+  
+  // 设置相关
+  getSettings: () => Promise<Settings>;
+  saveSettings: (settings: Partial<{ apiKey: string; embeddingModel: string }>) => Promise<boolean>;
+  openDataDir: () => Promise<void>;
+  openExternal: (url: string) => Promise<void>;
+  testAIConnection: () => Promise<TestResult>;
   
   // 错误处理
   onError: (callback: (error: string) => void) => () => void;
@@ -67,6 +85,13 @@ const api: ElectronAPI = {
   // 版本操作
   getVersions: (noteId) => ipcRenderer.invoke('note:getVersions', noteId),
   revertToVersion: (noteId, version) => ipcRenderer.invoke('note:revertToVersion', noteId, version),
+  
+  // 设置相关
+  getSettings: () => ipcRenderer.invoke('settings:get'),
+  saveSettings: (settings) => ipcRenderer.invoke('settings:save', settings),
+  openDataDir: () => ipcRenderer.invoke('settings:openDataDir'),
+  openExternal: (url) => ipcRenderer.invoke('settings:openExternal', url),
+  testAIConnection: () => ipcRenderer.invoke('settings:testAI'),
   
   // 错误处理
   onError: (callback) => {

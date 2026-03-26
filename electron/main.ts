@@ -1,7 +1,8 @@
-import { app, BrowserWindow, globalShortcut, Tray, Menu, ipcMain } from 'electron';
+import { app, BrowserWindow, globalShortcut, Tray, Menu, ipcMain, shell } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createRequire } from 'module';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,6 +17,8 @@ const require = createRequire(import.meta.url);
 
 // 动态导入后端模块
 let db: any = null;
+
+const SETTINGS_PATH = path.join(app.getPath('userData'), 'settings.json');
 
 async function loadBackend() {
   try {
@@ -229,6 +232,71 @@ function registerIPCHandlers() {
     } catch (err) {
       console.error('[IPC] note:revertToVersion error:', err);
       return null;
+    }
+  });
+
+  ipcMain.handle('settings:get', async () => {
+    try {
+      if (fs.existsSync(SETTINGS_PATH)) {
+        return JSON.parse(fs.readFileSync(SETTINGS_PATH, 'utf-8'));
+      }
+      return { apiKey: '', embeddingModel: 'local', dataPath: app.getPath('userData') };
+    } catch (err) {
+      console.error('[IPC] settings:get error:', err);
+      return { apiKey: '', embeddingModel: 'local', dataPath: app.getPath('userData') };
+    }
+  });
+
+  ipcMain.handle('settings:save', async (_, settings: { apiKey?: string; embeddingModel?: string }) => {
+    try {
+      let current: any = { apiKey: '', embeddingModel: 'local' };
+      if (fs.existsSync(SETTINGS_PATH)) {
+        current = JSON.parse(fs.readFileSync(SETTINGS_PATH, 'utf-8'));
+      }
+      const merged = { ...current, ...settings };
+      fs.writeFileSync(SETTINGS_PATH, JSON.stringify(merged, null, 2));
+      if (settings.apiKey) {
+        process.env.OPENAI_API_KEY = settings.apiKey;
+      }
+      return true;
+    } catch (err) {
+      console.error('[IPC] settings:save error:', err);
+      return false;
+    }
+  });
+
+  ipcMain.handle('settings:openDataDir', async () => {
+    try {
+      shell.openPath(app.getPath('userData'));
+    } catch (err) {
+      console.error('[IPC] settings:openDataDir error:', err);
+    }
+  });
+
+  ipcMain.handle('settings:openExternal', async (_, url: string) => {
+    try {
+      shell.openExternal(url);
+    } catch (err) {
+      console.error('[IPC] settings:openExternal error:', err);
+    }
+  });
+
+  ipcMain.handle('settings:testAI', async () => {
+    try {
+      let settings: any = { apiKey: '' };
+      if (fs.existsSync(SETTINGS_PATH)) {
+        settings = JSON.parse(fs.readFileSync(SETTINGS_PATH, 'utf-8'));
+      }
+      if (!settings.apiKey) {
+        return { success: false, message: '未配置 API Key' };
+      }
+      const { default: OpenAI } = await import('openai');
+      const client = new OpenAI({ apiKey: settings.apiKey });
+      await client.models.list();
+      return { success: true, message: '连接成功' };
+    } catch (err: any) {
+      console.error('[IPC] settings:testAI error:', err);
+      return { success: false, message: err?.message || String(err) };
     }
   });
 
