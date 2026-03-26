@@ -1,22 +1,23 @@
 import { useState, useRef, useEffect } from 'react';
+import { api, type FrontendNote } from '../api';
 
 interface Message {
-  id: number;
+  id: string;
   content: string;
   isUser: boolean;
   tags?: string[];
+  summary?: string;
+  time?: string;
 }
 
 interface InstantInspirationProps {
-  onSend: (content: string) => void;
+  onSend?: (content: string) => void;
 }
 
 export function InstantInspiration({ onSend }: InstantInspirationProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    { id: 0, content: '开会被问到项目的进展，需要准备一个清晰的汇报。明天上午 10 点前要发给项目经理。', isUser: true, tags: ['会议', '项目'] },
-    { id: 1, content: '已保存！', isUser: false, tags: ['记录', '想法'] },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -25,36 +26,72 @@ export function InstantInspiration({ onSend }: InstantInspirationProps) {
   }, [messages]);
 
   useEffect(() => {
-    const handleFocusInput = () => {
-      inputRef.current?.focus();
-    };
-    
-    window.addEventListener('focus-input', handleFocusInput);
-    return () => window.removeEventListener('focus-input', handleFocusInput);
+    loadHistory();
   }, []);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
-    
+  useEffect(() => {
+    const unsubscribe = window.electronAPI.onFocusInput(() => {
+      inputRef.current?.focus();
+    });
+    return unsubscribe;
+  }, []);
+
+  const loadHistory = async () => {
+    try {
+      const notes = await api.getAllNotes(10);
+      const historyMessages: Message[] = notes.map(n => ({
+        id: n.id,
+        content: n.content,
+        isUser: true,
+        tags: n.tags,
+        summary: n.summary,
+        time: n.time,
+      }));
+      setMessages(historyMessages);
+    } catch (err) {
+      console.error('[即时灵感] 加载历史失败:', err);
+    }
+  };
+
+  const handleSend = async () => {
+    if (!input.trim() || loading) return;
+
     const userMessage: Message = {
-      id: Date.now(),
+      id: Date.now().toString(),
       content: input,
       isUser: true,
+      time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
     };
-    
+
     setMessages(prev => [...prev, userMessage]);
-    onSend(input);
-    setInput('');
-    
-    setTimeout(() => {
-      const aiMessage: Message = {
-        id: Date.now() + 1,
-        content: '已保存！',
+    setLoading(true);
+
+    try {
+      const note = await api.createNote(input, 'text');
+
+      if (note) {
+        const aiMessage: Message = {
+          id: `ai-${Date.now()}`,
+          content: '已保存！',
+          isUser: false,
+          tags: note.tags,
+          summary: note.summary,
+        };
+        setMessages(prev => [...prev, aiMessage]);
+      }
+    } catch (err) {
+      console.error('[即时灵感] 保存失败:', err);
+      setMessages(prev => [...prev, {
+        id: `error-${Date.now()}`,
+        content: '保存失败，请重试',
         isUser: false,
-        tags: ['记录', '想法'],
-      };
-      setMessages(prev => [...prev, aiMessage]);
-    }, 500);
+      }]);
+    } finally {
+      setLoading(false);
+    }
+
+    setInput('');
+    if (onSend) onSend(input);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -70,26 +107,45 @@ export function InstantInspiration({ onSend }: InstantInspirationProps) {
         <div className="panel-title">即时灵感</div>
         <div className="panel-subtitle">快速记录想法，AI 自动整理</div>
       </div>
-      
+
       <div className="chat-messages">
+        {messages.length === 0 && (
+          <div className="empty-state">
+            <p>还没有记录任何想法</p>
+            <p>输入内容开始记录吧</p>
+          </div>
+        )}
         {messages.map(msg => (
           <div key={msg.id} className="message">
             <div className={`message-avatar ${msg.isUser ? 'user' : 'ai'}`}>
               {msg.isUser ? '我' : 'AI'}
             </div>
             <div className="message-content">
-              <div className="message-label">{msg.isUser ? '你' : '忆流'}</div>
+              <div className="message-label">
+                {msg.isUser ? '你' : '忆流'}
+                {msg.time && <span className="message-time">{msg.time}</span>}
+              </div>
               <div className="message-text">
                 {msg.isUser ? (
                   <p>{msg.content}</p>
                 ) : (
                   <>
                     <p>{msg.content}</p>
-                    {msg.tags && (
+                    {(msg.tags?.length || msg.summary) && (
                       <blockquote>
-                        📝 <strong>已自动添加标签</strong>
-                        <br />
-                        🏷️ <em>{msg.tags.map(t => `#${t}`).join(' ')}</em>
+                        {msg.summary && (
+                          <>
+                            📝 <strong>摘要</strong>
+                            <br />
+                            <span className="summary-text">{msg.summary}</span>
+                            <br /><br />
+                          </>
+                        )}
+                        {msg.tags && msg.tags.length > 0 && (
+                          <>
+                            🏷️ <em>{msg.tags.map(t => `#${t}`).join(' ')}</em>
+                          </>
+                        )}
                       </blockquote>
                     )}
                   </>
@@ -98,9 +154,20 @@ export function InstantInspiration({ onSend }: InstantInspirationProps) {
             </div>
           </div>
         ))}
+        {loading && (
+          <div className="message">
+            <div className="message-avatar ai">AI</div>
+            <div className="message-content">
+              <div className="message-label">忆流</div>
+              <div className="message-text">
+                <p className="loading-text">正在处理...</p>
+              </div>
+            </div>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
-      
+
       <div className="input-area">
         <div className="input-container">
           <div className="input-wrapper">
@@ -118,7 +185,7 @@ export function InstantInspiration({ onSend }: InstantInspirationProps) {
               rows={1}
             />
           </div>
-          <button className="send-btn" onClick={handleSend}>
+          <button className="send-btn" onClick={handleSend} disabled={loading}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="22" y1="2" x2="11" y2="13" />
               <polygon points="22,2 15,22 11,13 2,9 22,2" />

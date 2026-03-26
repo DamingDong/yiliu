@@ -4,9 +4,14 @@ node_modules/
 # Build
 dist/
 dist-electron/
+dist-electron-temp/
 *.d.ts
 *.d.cts
 !src/**/*.ts
+
+# Release
+release/
+pnpm-lock.yaml
 
 # Data
 data/

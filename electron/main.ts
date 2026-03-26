@@ -19,6 +19,10 @@ let db: any = null;
 
 async function loadBackend() {
   try {
+    // 设置数据路径（必须在导入前设置）
+    process.env.YILIU_DATA_PATH = app.getPath('userData');
+    console.log('[忆流] 数据路径:', process.env.YILIU_DATA_PATH);
+
     const backendPath = path.join(__dirname, 'backend', 'storage', 'db.js');
     const module = await import(`file://${backendPath}`);
     db = module;

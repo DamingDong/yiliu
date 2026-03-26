@@ -11,7 +11,12 @@ import fs from 'fs';
 import { generateEmbedding, enhanceNote, isAIAvailable, type AIEnhanceResult } from '../ai/index.js';
 import { initVectorStore, addVector, removeVector, semanticSearch, hybridSearch, getStats } from './vector.js';
 
-const DB_PATH = path.join(process.cwd(), 'data', 'yiliu.db');
+const getDataPath = (): string => {
+  if (process.env.YILIU_DATA_PATH) {
+    return process.env.YILIU_DATA_PATH;
+  }
+  return path.join(process.cwd(), 'data');
+};
 
 let db: Client;
 
@@ -19,10 +24,11 @@ let db: Client;
  * 初始化数据库
  */
 export async function initDB(): Promise<void> {
-  const dataDir = path.join(process.cwd(), 'data');
+  const dataDir = getDataPath();
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
   }
+  const DB_PATH = path.join(dataDir, 'yiliu.db');
 
   // 使用 LibSQL 本地文件数据库
   db = createClient({
