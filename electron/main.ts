@@ -44,17 +44,19 @@ async function loadBackend() {
     console.log('[忆流] isPackaged:', app.isPackaged);
     console.log('[忆流] __dirname:', __dirname);
 
-    // __dirname 在打包后是 Resources/app/dist-electron
-    // 后端文件在 Resources/app/dist-electron/backend/storage/db.js
-    // 所以直接用 __dirname + backend/storage/db.js 即可
     const backendPath = path.join(__dirname, 'backend', 'storage', 'db.js');
     console.log('[忆流] 后端路径:', backendPath);
     
+    const getModulePath = (relPath: string): string => {
+      const mainPath = path.join(__dirname, relPath);
+      if (fs.existsSync(mainPath)) return mainPath;
+      const altPath = path.join(process.resourcesPath, 'app', 'dist-electron', relPath);
+      return altPath;
+    };
+
     if (!fs.existsSync(backendPath)) {
       console.error('[忆流] 后端文件不存在:', backendPath);
-      
-      // 尝试其他可能的路径
-      const altPath = path.join(process.resourcesPath, 'app', 'dist-electron', 'backend', 'storage', 'db.js');
+      const altPath = getModulePath('backend/storage/db.js');
       console.log('[忆流] 尝试备用路径:', altPath);
       
       if (!fs.existsSync(altPath)) {
@@ -71,6 +73,22 @@ async function loadBackend() {
 
     const module = await import(`file://${backendPath}`);
     db = module;
+    
+    const aiModulePath = getModulePath('backend/ai/index.js');
+    if (fs.existsSync(aiModulePath)) {
+      try {
+        const aiModule = await import(`file://${aiModulePath}`);
+        if (aiModule.setProgressCallback) {
+          aiModule.setProgressCallback((stage: string, progress: number) => {
+            mainWindow?.webContents.send('model-load-progress', { stage, progress });
+          });
+          console.log('[忆流] AI 进度回调已设置');
+        }
+      } catch (aiErr) {
+        console.log('[忆流] AI 模块进度回调设置失败:', aiErr);
+      }
+    }
+    
     await db.initDB();
     console.log('[忆流] 后端模块已加载');
   } catch (err) {
@@ -320,6 +338,14 @@ function registerIPCHandlers() {
       shell.openExternal(url);
     } catch (err) {
       console.error('[IPC] settings:openExternal error:', err);
+    }
+  });
+
+  ipcMain.handle('settings:openFile', async (_, filePath: string) => {
+    try {
+      shell.showItemInFolder(filePath);
+    } catch (err) {
+      console.error('[IPC] settings:openFile error:', err);
     }
   });
 

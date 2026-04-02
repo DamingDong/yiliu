@@ -728,6 +728,91 @@ body {
   color: var(--color-text);
 }
 
+.export-result {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  animation: slideIn 0.2s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.export-result.success {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+}
+
+.export-result.error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.export-result-message {
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.export-result.success .export-result-message {
+  color: #059669;
+}
+
+.export-result.error .export-result-message {
+  color: #dc2626;
+}
+
+.export-result-path {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.path-label {
+  color: var(--color-text-muted);
+}
+
+.path-value {
+  font-family: monospace;
+  background: rgba(0,0,0,0.05);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.export-result-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.export-action-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  background: #10b981;
+  color: white;
+}
+
+.export-action-btn.secondary {
+  background: #e5e7eb;
+  color: var(--color-text);
+}
+
+.export-action-btn:hover {
+  opacity: 0.9;
+}
+
 /* Settings */
 .settings {
   padding: 24px;

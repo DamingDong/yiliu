@@ -8,9 +8,14 @@ interface SearchResultNote extends FrontendNote {
   score?: number;
 }
 
+interface SearchResult {
+  note: FrontendNote;
+  score: number;
+}
+
 interface KnowledgeBaseProps {
   notes: FrontendNote[];
-  onSearch: (query: string) => Promise<FrontendNote[]>;
+  onSearch: (query: string) => Promise<SearchResult[]>;
   onFilterByTag: (tag: string) => FrontendNote[];
   onSelectNote: (note: FrontendNote) => void;
 }
@@ -30,12 +35,11 @@ export function KnowledgeBase({ notes, onSearch, onFilterByTag, onSelectNote }: 
         setSearching(true);
         try {
           const results = await onSearch(query);
-          const processedResults: SearchResultNote[] = results.map((note, index) => ({
-            ...note,
+          const processedResults: SearchResultNote[] = results.map((result) => ({
+            ...result.note,
             matchType: searchMode === 'keyword' ? 'keyword' : 
                        searchMode === 'semantic' ? 'semantic' : 'hybrid',
-            score: searchMode === 'semantic' ? Math.max(0.3, 1 - index * 0.1) : 
-                   searchMode === 'keyword' ? (note.content.includes(query) ? 1 : 0.5) : 0.8 - index * 0.1,
+            score: result.score,
           }));
           setSearchResults(processedResults);
         } finally {

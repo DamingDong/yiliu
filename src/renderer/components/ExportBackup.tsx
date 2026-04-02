@@ -6,16 +6,28 @@ interface ExportBackupProps {
   notes: FrontendNote[];
 }
 
+interface ExportResult {
+  success: boolean;
+  filePath?: string;
+  message?: string;
+}
+
 export function ExportBackup({ notes }: ExportBackupProps) {
   const [exporting, setExporting] = useState(false);
+  const [exportResult, setExportResult] = useState<ExportResult | null>(null);
 
   const handleExport = async (format: 'md' | 'json') => {
     setExporting(true);
+    setExportResult(null);
     try {
       if (format === 'md') {
         const filePath = await api.exportToMarkdown('md');
         if (filePath) {
-          alert(`导出成功：${filePath}`);
+          setExportResult({
+            success: true,
+            filePath,
+            message: 'Markdown 导出成功',
+          });
         } else {
           let md = '# 忆流笔记导出\n\n';
           notes.forEach(note => {
@@ -28,7 +40,10 @@ export function ExportBackup({ notes }: ExportBackupProps) {
           a.download = `yiliu-notes-${Date.now()}.md`;
           a.click();
           URL.revokeObjectURL(url);
-          alert('Markdown 导出成功');
+          setExportResult({
+            success: true,
+            message: 'Markdown 导出成功（浏览器下载）',
+          });
         }
       } else {
         const json = JSON.stringify(notes, null, 2);
@@ -39,11 +54,17 @@ export function ExportBackup({ notes }: ExportBackupProps) {
         a.download = `yiliu-notes-${Date.now()}.json`;
         a.click();
         URL.revokeObjectURL(url);
-        alert('JSON 导出成功');
+        setExportResult({
+          success: true,
+          message: 'JSON 导出成功（浏览器下载）',
+        });
       }
     } catch (err) {
       console.error('Export failed:', err);
-      alert('导出失败');
+      setExportResult({
+        success: false,
+        message: '导出失败',
+      });
     } finally {
       setExporting(false);
     }
@@ -68,8 +89,8 @@ export function ExportBackup({ notes }: ExportBackupProps) {
             <div className="export-title">Markdown</div>
             <div className="export-desc">导出为 .md 文件</div>
           </div>
-          <button className="export-btn primary" onClick={() => handleExport('md')}>
-            导出
+          <button className="export-btn primary" onClick={() => handleExport('md')} disabled={exporting}>
+            {exporting ? '导出中...' : '导出'}
           </button>
         </div>
         
@@ -85,7 +106,7 @@ export function ExportBackup({ notes }: ExportBackupProps) {
             <div className="export-title">JSON</div>
             <div className="export-desc">导出为 .json 文件</div>
           </div>
-          <button className="export-btn secondary" onClick={() => handleExport('json')}>
+          <button className="export-btn secondary" onClick={() => handleExport('json')} disabled={exporting}>
             导出
           </button>
         </div>
@@ -107,6 +128,38 @@ export function ExportBackup({ notes }: ExportBackupProps) {
           </button>
         </div>
       </div>
+
+      {exportResult && (
+        <div className={`export-result ${exportResult.success ? 'success' : 'error'}`}>
+          <div className="export-result-message">
+            {exportResult.success ? '✓' : '✗'} {exportResult.message}
+          </div>
+          {exportResult.filePath && (
+            <div className="export-result-path">
+              <span className="path-label">保存位置：</span>
+              <span className="path-value" title={exportResult.filePath}>
+                {exportResult.filePath.split('/').pop()}
+              </span>
+            </div>
+          )}
+          <div className="export-result-actions">
+            {exportResult.filePath && (
+              <button 
+                className="export-action-btn"
+                onClick={() => api.openFile(exportResult.filePath!)}
+              >
+                打开文件
+              </button>
+            )}
+            <button 
+              className="export-action-btn secondary"
+              onClick={() => api.openDataDir()}
+            >
+              打开目录
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

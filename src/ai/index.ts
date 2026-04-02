@@ -31,6 +31,20 @@ export type EmbedderProvider = 'openai' | 'huggingface' | 'local';
 // 嵌入配置（存储在内存中）
 let embedderConfig: { provider: EmbedderProvider } = { provider: 'openai' };
 
+// 进度回调
+type ProgressCallback = (stage: string, progress: number) => void;
+let progressCallback: ProgressCallback | null = null;
+
+export function setProgressCallback(callback: ProgressCallback | null): void {
+  progressCallback = callback;
+}
+
+function reportProgress(stage: string, progress: number): void {
+  if (progressCallback) {
+    progressCallback(stage, progress);
+  }
+}
+
 function updateConfig(config: Partial<{ provider: EmbedderProvider }>): void {
   embedderConfig = { ...embedderConfig, ...config };
 }
@@ -78,7 +92,6 @@ async function getLocalEmbedder(): Promise<any> {
   if (localEmbedder) return localEmbedder;
   
   if (localEmbedderLoading) {
-    // 等待加载完成
     while (localEmbedderLoading) {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
@@ -88,13 +101,27 @@ async function getLocalEmbedder(): Promise<any> {
   localEmbedderLoading = true;
   
   try {
-    // 使用静态导入的 pipeline
-    localEmbedder = await pipeline('feature-extraction', LOCAL_MODEL);
+    reportProgress('downloading-model', 0);
     
+    localEmbedder = await pipeline('feature-extraction', LOCAL_MODEL, {
+      progress_callback: (progress: any) => {
+        if (progress.status === 'initiate') {
+          reportProgress('initiating', 5);
+        } else if (progress.status === 'loading') {
+          const percent = Math.round(progress.progress || 0);
+          reportProgress('downloading-model', Math.min(percent, 90));
+        } else if (progress.status === 'done') {
+          reportProgress('finalizing', 95);
+        }
+      }
+    });
+    
+    reportProgress('complete', 100);
     console.log(`[yiliu] Local embedder loaded: ${LOCAL_MODEL}`);
     return localEmbedder;
   } catch (error) {
     console.error('[yiliu] Failed to load local embedder:', error);
+    reportProgress('error', 0);
     return null;
   } finally {
     localEmbedderLoading = false;

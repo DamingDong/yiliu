@@ -23,11 +23,17 @@ const api = {
   saveSettings: (settings: { apiKey?: string; embeddingModel?: string }) => ipcRenderer.invoke('settings:save', settings),
   openDataDir: () => ipcRenderer.invoke('settings:openDataDir'),
   openExternal: (url: string) => ipcRenderer.invoke('settings:openExternal', url),
+  openFile: (filePath: string) => ipcRenderer.invoke('settings:openFile', filePath),
   testAIConnection: () => ipcRenderer.invoke('settings:testAI'),
   onError: (callback: (error: string) => void) => {
     const handler = (_: any, error: string) => callback(error);
     ipcRenderer.on('error', handler);
     return () => ipcRenderer.removeListener('error', handler);
+  },
+  onModelLoadProgress: (callback: (data: { stage: string; progress: number }) => void) => {
+    const handler = (_: any, data: { stage: string; progress: number }) => callback(data);
+    ipcRenderer.on('model-load-progress', handler);
+    return () => ipcRenderer.removeListener('model-load-progress', handler);
   },
 };
 

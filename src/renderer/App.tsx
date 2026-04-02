@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { ModelLoadingOverlay } from './components/ModelLoadingOverlay';
 import { Sidebar } from './components/Sidebar';
 import { InstantInspiration } from './components/InstantInspiration';
 import { WriteNote } from './components/WriteNote';
@@ -23,18 +24,35 @@ function App() {
   const [rightView, setRightView] = useState<'list' | 'detail'>('list');
   const [writeMode, setWriteMode] = useState<'new' | 'continue'>('new');
   const [continueNoteTitle, setContinueNoteTitle] = useState('');
+  const [continueNoteContent, setContinueNoteContent] = useState('');
   const [loading, setLoading] = useState(true);
+  const [modelLoading, setModelLoading] = useState({ visible: false, stage: '', progress: 0 });
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadNotes();
     
-    const unsubscribe = api.onError((err) => {
+    const unsubscribeError = api.onError((err) => {
       setError(err);
       setTimeout(() => setError(null), 5000);
     });
     
-    return () => unsubscribe();
+    const unsubscribeProgress = api.onModelLoadProgress((data) => {
+      if (data.progress < 100) {
+        setModelLoading({
+          visible: true,
+          stage: data.stage,
+          progress: data.progress,
+        });
+      } else {
+        setModelLoading({ visible: false, stage: '', progress: 0 });
+      }
+    });
+    
+    return () => {
+      unsubscribeError();
+      unsubscribeProgress();
+    };
   }, []);
 
   const loadNotes = async () => {
@@ -71,6 +89,7 @@ function App() {
         setNotes(prev => [newNote, ...prev]);
         setWriteMode('new');
         setContinueNoteTitle('');
+        setContinueNoteContent('');
       }
     } catch (err) {
       console.error('Failed to save note:', err);
@@ -78,10 +97,14 @@ function App() {
     }
   }, []);
 
-  const handleEditNote = useCallback((note: FrontendNote) => {
-    setWriteMode('continue');
-    setContinueNoteTitle(note.title);
-    setActivePanel(1);
+  const handleEditNote = useCallback(async (note: FrontendNote) => {
+    const fullNote = await api.getNote(note.id);
+    if (fullNote) {
+      setWriteMode('continue');
+      setContinueNoteTitle(fullNote.title);
+      setContinueNoteContent(fullNote.content);
+      setActivePanel(1);
+    }
   }, []);
 
   const handleDeleteNote = useCallback(async (note: FrontendNote) => {
@@ -102,17 +125,16 @@ function App() {
     }
   }, [currentNoteId]);
 
-  const handleSearch = useCallback(async (query: string): Promise<FrontendNote[]> => {
-    if (!query.trim()) return notes;
+  const handleSearch = useCallback(async (query: string) => {
+    if (!query.trim()) return [];
     try {
-      return await api.semanticSearch(query).then(results => 
-        results.map(r => r.note)
-      );
+      const results = await api.semanticSearch(query);
+      return results;
     } catch (err) {
       console.error('Search failed:', err);
-      return notes.filter(n => 
-        n.content.includes(query) || n.title.includes(query)
-      );
+      return notes
+        .filter(n => n.content.includes(query) || n.title.includes(query))
+        .map(note => ({ note, score: 0.5 }));
     }
   }, [notes]);
 
@@ -151,6 +173,10 @@ function App() {
         </div>
       )}
       
+      {modelLoading.visible && (
+        <ModelLoadingOverlay stage={modelLoading.stage} progress={modelLoading.progress} />
+      )}
+      
       <Sidebar activePanel={activePanel} onNavigate={setActivePanel} />
       
       <main className="panel-content-area">
@@ -161,10 +187,12 @@ function App() {
           <WriteNote 
             mode={writeMode} 
             noteTitle={writeMode === 'continue' ? continueNoteTitle : ''}
+            initialContent={writeMode === 'continue' ? continueNoteContent : ''}
             onSave={handleSaveNote}
             onDiscard={() => {
               setWriteMode('new');
               setContinueNoteTitle('');
+              setContinueNoteContent('');
             }}
           />
         )}

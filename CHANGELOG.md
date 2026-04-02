@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-04-02
+
+### Added
+- 向量模型加载进度提示（首次加载显示进度条）
+- 真实搜索分数（从后端返回向量相似度分数）
+- WriteNote 续写功能（点击编辑自动加载已有内容）
+- 导出路径提示（显示文件保存位置，提供打开文件/目录按钮）
+
+### Changed
+- 搜索结果使用后端返回的真实向量相似度分数
+
 ## [2.0.0] - 2026-03-26
 
 ### Added
@@ -85,14 +96,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 版本规划
 
-### [2.1.0] - 计划中
+### [2.2.0] - 未来
 
 - WebDAV 同步
 - 数据迁移脚本
 - 单元测试
-
-### [2.2.0] - 未来
-
 - 网页抓取（readability）
 - PDF 处理
 - Yjs 实时同步

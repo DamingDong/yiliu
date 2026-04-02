@@ -101,6 +101,18 @@ export const api = {
   onError(callback: (error: string) => void): () => void {
     return window.electronAPI.onError(callback);
   },
+
+  openFile(filePath: string): void {
+    window.electronAPI.openFile(filePath);
+  },
+
+  openDataDir(): void {
+    window.electronAPI.openDataDir();
+  },
+
+  onModelLoadProgress(callback: (data: { stage: string; progress: number }) => void): () => void {
+    return window.electronAPI.onModelLoadProgress(callback);
+  },
 };
 
 export { type FrontendNote };

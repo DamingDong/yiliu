@@ -1,15 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface WriteNoteProps {
   mode: 'new' | 'continue';
   noteTitle: string;
+  initialContent?: string;
   onSave: (content: string) => void;
   onDiscard: () => void;
 }
 
-export function WriteNote({ mode, noteTitle, onSave, onDiscard }: WriteNoteProps) {
+export function WriteNote({ mode, noteTitle, initialContent = '', onSave, onDiscard }: WriteNoteProps) {
   const [content, setContent] = useState('');
   const [wordCount, setWordCount] = useState(0);
+  const editorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (mode === 'continue' && initialContent) {
+      setContent(initialContent);
+      if (editorRef.current) {
+        editorRef.current.innerText = initialContent;
+        editorRef.current.focus();
+        const range = document.createRange();
+        range.selectNodeContents(editorRef.current);
+        range.collapse(false);
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+      }
+      setWordCount(initialContent.length);
+    } else if (mode === 'new') {
+      setContent('');
+      setWordCount(0);
+      if (editorRef.current) {
+        editorRef.current.innerText = '';
+      }
+    }
+  }, [mode, initialContent]);
 
   const handleContentChange = (e: React.FormEvent<HTMLDivElement>) => {
     const text = e.currentTarget.innerText;
@@ -25,6 +50,9 @@ export function WriteNote({ mode, noteTitle, onSave, onDiscard }: WriteNoteProps
     onSave(content);
     setContent('');
     setWordCount(0);
+    if (editorRef.current) {
+      editorRef.current.innerText = '';
+    }
   };
 
   return (
@@ -61,10 +89,12 @@ export function WriteNote({ mode, noteTitle, onSave, onDiscard }: WriteNoteProps
             <button className="tool-btn" title="链接">🔗</button>
           </div>
           <div
+            ref={editorRef}
             className="editor-content"
             contentEditable
             onInput={handleContentChange}
             suppressContentEditableWarning
+            placeholder={mode === 'new' ? '开始记录你的想法...' : '在现有内容后继续书写...'}
           />
           <div className="editor-footer">
             <div className="editor-stats">{wordCount} 字</div>
