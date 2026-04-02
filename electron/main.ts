@@ -10,7 +10,24 @@ const __dirname = path.dirname(__filename);
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 
-const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+// 检测是否为开发模式：如果 dist/index.html 不存在，则为开发模式
+const distIndexHtml = path.join(__dirname, '../dist/index.html');
+const isDev = !fs.existsSync(distIndexHtml);
+
+console.log('[忆流] dist/index.html 路径:', distIndexHtml);
+console.log('[忆流] 文件存在:', fs.existsSync(distIndexHtml));
+console.log('[忆流] isDev:', isDev);
+
+function getResourcePath(...parts: string[]): string {
+  // 打包后，__dirname 是 Resources/app/dist-electron
+  // 所以需要相对于这个路径查找
+  if (!isDev) {
+    // 打包后：Resources/app 是根目录
+    const appPath = path.resolve(__dirname, '..');
+    return path.join(appPath, ...parts);
+  }
+  return path.join(__dirname, ...parts);
+}
 
 // 使用 createRequire 来动态加载 CommonJS 模块
 const require = createRequire(import.meta.url);
@@ -22,11 +39,36 @@ const SETTINGS_PATH = path.join(app.getPath('userData'), 'settings.json');
 
 async function loadBackend() {
   try {
-    // 设置数据路径（必须在导入前设置）
     process.env.YILIU_DATA_PATH = app.getPath('userData');
     console.log('[忆流] 数据路径:', process.env.YILIU_DATA_PATH);
+    console.log('[忆流] isPackaged:', app.isPackaged);
+    console.log('[忆流] __dirname:', __dirname);
 
+    // __dirname 在打包后是 Resources/app/dist-electron
+    // 后端文件在 Resources/app/dist-electron/backend/storage/db.js
+    // 所以直接用 __dirname + backend/storage/db.js 即可
     const backendPath = path.join(__dirname, 'backend', 'storage', 'db.js');
+    console.log('[忆流] 后端路径:', backendPath);
+    
+    if (!fs.existsSync(backendPath)) {
+      console.error('[忆流] 后端文件不存在:', backendPath);
+      
+      // 尝试其他可能的路径
+      const altPath = path.join(process.resourcesPath, 'app', 'dist-electron', 'backend', 'storage', 'db.js');
+      console.log('[忆流] 尝试备用路径:', altPath);
+      
+      if (!fs.existsSync(altPath)) {
+        console.error('[忆流] 备用路径也不存在');
+        return;
+      }
+      
+      const module = await import(`file://${altPath}`);
+      db = module;
+      await db.initDB();
+      console.log('[忆流] 后端模块已加载 (备用路径)');
+      return;
+    }
+
     const module = await import(`file://${backendPath}`);
     db = module;
     await db.initDB();
