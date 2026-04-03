@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
+import { MarkdownEditor, type EditorMode } from './MarkdownEditor';
 
 interface WriteNoteProps {
   mode: 'new' | 'continue';
@@ -10,37 +11,24 @@ interface WriteNoteProps {
 
 export function WriteNote({ mode, noteTitle, initialContent = '', onSave, onDiscard }: WriteNoteProps) {
   const [content, setContent] = useState('');
+  const [editorMode, setEditorMode] = useState<EditorMode>('edit');
   const [wordCount, setWordCount] = useState(0);
-  const editorRef = useRef<HTMLDivElement>(null);
+  const [charCount, setCharCount] = useState(0);
 
   useEffect(() => {
     if (mode === 'continue' && initialContent) {
       setContent(initialContent);
-      if (editorRef.current) {
-        editorRef.current.innerText = initialContent;
-        editorRef.current.focus();
-        const range = document.createRange();
-        range.selectNodeContents(editorRef.current);
-        range.collapse(false);
-        const sel = window.getSelection();
-        sel?.removeAllRanges();
-        sel?.addRange(range);
-      }
-      setWordCount(initialContent.length);
     } else if (mode === 'new') {
       setContent('');
-      setWordCount(0);
-      if (editorRef.current) {
-        editorRef.current.innerText = '';
-      }
     }
   }, [mode, initialContent]);
 
-  const handleContentChange = (e: React.FormEvent<HTMLDivElement>) => {
-    const text = e.currentTarget.innerText;
-    setContent(text);
-    setWordCount(text.length);
-  };
+  useEffect(() => {
+    const chars = content.length;
+    const words = content.trim() ? content.trim().split(/\s+/).length : 0;
+    setCharCount(chars);
+    setWordCount(words);
+  }, [content]);
 
   const handleSave = () => {
     if (!content.trim()) {
@@ -50,16 +38,14 @@ export function WriteNote({ mode, noteTitle, initialContent = '', onSave, onDisc
     onSave(content);
     setContent('');
     setWordCount(0);
-    if (editorRef.current) {
-      editorRef.current.innerText = '';
-    }
+    setCharCount(0);
   };
 
   return (
     <div className="write-note">
       <div className="panel-header">
         <div className="panel-title">写笔记</div>
-        <div className="panel-subtitle">手动输入，记录你的想法</div>
+        <div className="panel-subtitle">支持 Markdown 语法</div>
       </div>
       
       <div className="write-mode-bar">
@@ -80,24 +66,23 @@ export function WriteNote({ mode, noteTitle, initialContent = '', onSave, onDisc
       </div>
       
       <div className="panel-content">
-        <div className="editor-container">
-          <div className="editor-toolbar">
-            <button className="tool-btn" title="加粗">B</button>
-            <button className="tool-btn" title="斜体"><i>I</i></button>
-            <button className="tool-btn" title="标题">H</button>
-            <button className="tool-btn" title="列表">☰</button>
-            <button className="tool-btn" title="链接">🔗</button>
-          </div>
-          <div
-            ref={editorRef}
-            className="editor-content"
-            contentEditable
-            onInput={handleContentChange}
-            suppressContentEditableWarning
-            placeholder={mode === 'new' ? '开始记录你的想法...' : '在现有内容后继续书写...'}
+        <div className="editor-container markdown-container">
+          <MarkdownEditor
+            value={content}
+            onChange={setContent}
+            mode={editorMode}
+            onModeChange={setEditorMode}
+            placeholder={mode === 'new' ? '开始记录你的想法...\n\n支持 Markdown 语法：\n- 标题使用 #\n- 列表使用 - 或 1.\n- 代码使用 ```\n- 公式使用 $...$' : '在现有内容后继续书写...'}
           />
           <div className="editor-footer">
-            <div className="editor-stats">{wordCount} 字</div>
+            <div className="editor-stats">
+              {charCount} 字符 · {wordCount} 词
+            </div>
+            <div className="editor-hints">
+              <span className="hint-item"><kbd>⌘B</kbd> 加粗</span>
+              <span className="hint-item"><kbd>⌘I</kbd> 斜体</span>
+              <span className="hint-item"><kbd>⌘K</kbd> 链接</span>
+            </div>
           </div>
         </div>
       </div>

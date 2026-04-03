@@ -882,3 +882,342 @@ body {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Markdown Editor */
+.markdown-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.markdown-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: #fafafa;
+  border-bottom: 1px solid var(--color-border);
+  gap: 4px;
+}
+
+.toolbar-group {
+  display: flex;
+  gap: 2px;
+}
+
+.toolbar-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.toolbar-btn:hover {
+  background: #e5e7eb;
+  color: var(--color-text);
+}
+
+.toolbar-btn:active {
+  background: #d1d5db;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--color-border);
+  margin: 0 6px;
+}
+
+.toolbar-spacer {
+  flex: 1;
+}
+
+.mode-switcher {
+  display: flex;
+  gap: 2px;
+  background: #f3f4f6;
+  padding: 3px;
+  border-radius: 8px;
+}
+
+.mode-btn {
+  width: 28px;
+  height: 26px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+}
+
+.mode-btn:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.mode-btn.active {
+  background: white;
+  color: var(--color-text);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.editor-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.editor-body.edit .editor-pane {
+  flex: 1;
+}
+
+.editor-body.preview .preview-pane {
+  flex: 1;
+}
+
+.editor-body.split .editor-pane,
+.editor-body.split .preview-pane {
+  flex: 1;
+}
+
+.editor-body.split {
+  border-top: none;
+}
+
+.editor-pane {
+  display: flex;
+  flex-direction: column;
+}
+
+.markdown-textarea {
+  flex: 1;
+  width: 100%;
+  padding: 20px;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 14px;
+  line-height: 1.7;
+  background: white;
+  color: var(--color-text);
+}
+
+.markdown-textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.preview-pane {
+  background: #fafafa;
+  border-left: 1px solid var(--color-border);
+  overflow-y: auto;
+}
+
+.markdown-container {
+  border: none;
+  margin: 0;
+  border-radius: 0;
+  height: 100%;
+}
+
+.editor-hints {
+  display: flex;
+  gap: 12px;
+}
+
+.hint-item {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.hint-item kbd {
+  background: #f4f4f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 10px;
+  margin-right: 3px;
+}
+
+/* Markdown Preview Styles */
+.markdown-preview {
+  padding: 20px 24px;
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--color-text);
+}
+
+.markdown-preview h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.markdown-preview h2 {
+  font-size: 1.5em;
+  font-weight: 600;
+  margin: 24px 0 12px 0;
+}
+
+.markdown-preview h3 {
+  font-size: 1.25em;
+  font-weight: 600;
+  margin: 20px 0 10px 0;
+}
+
+.markdown-preview h4,
+.markdown-preview h5,
+.markdown-preview h6 {
+  font-size: 1.1em;
+  font-weight: 600;
+  margin: 16px 0 8px 0;
+}
+
+.markdown-preview p {
+  margin: 12px 0;
+}
+
+.markdown-preview ul,
+.markdown-preview ol {
+  margin: 12px 0;
+  padding-left: 24px;
+}
+
+.markdown-preview li {
+  margin: 6px 0;
+}
+
+.markdown-preview blockquote {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border-left: 4px solid var(--color-primary);
+  background: #f9fafb;
+  border-radius: 0 8px 8px 0;
+  color: var(--color-text-secondary);
+}
+
+.markdown-preview blockquote p {
+  margin: 0;
+}
+
+.markdown-preview code {
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: #d63384;
+}
+
+.markdown-preview pre {
+  margin: 16px 0;
+  padding: 16px;
+  background: #1e1e1e;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.markdown-preview pre code {
+  background: transparent;
+  padding: 0;
+  color: #d4d4d4;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.markdown-preview a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.markdown-preview a:hover {
+  text-decoration: underline;
+}
+
+.markdown-preview img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 12px 0;
+}
+
+.markdown-preview hr {
+  margin: 24px 0;
+  border: none;
+  border-top: 1px solid var(--color-border);
+}
+
+.markdown-preview table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+}
+
+.markdown-preview th,
+.markdown-preview td {
+  padding: 10px 14px;
+  border: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.markdown-preview th {
+  background: #f9fafb;
+  font-weight: 600;
+}
+
+.markdown-preview input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+/* Code block with line numbers */
+.markdown-preview pre {
+  position: relative;
+}
+
+.markdown-preview pre .line-numbers {
+  position: absolute;
+  left: 0;
+  top: 16px;
+  padding: 0 12px;
+  color: #6b7280;
+  text-align: right;
+  user-select: none;
+  border-right: 1px solid #374151;
+  margin-right: 12px;
+}
+
+/* KaTeX math display */
+.markdown-preview .math-display {
+  margin: 20px 0;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+  overflow-x: auto;
+  text-align: center;
+}
+
+.markdown-preview .math-inline {
+  padding: 0 4px;
+}
+
+/* Syntax highlighting for code blocks */
+.hljs {
+  background: transparent !important;
+}
+
+/* Task list styling */
+.markdown-preview input[type="checkbox"]:checked + p {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
