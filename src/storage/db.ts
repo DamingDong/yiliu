@@ -441,6 +441,138 @@ export async function exportToMarkdown(format: string = 'md'): Promise<string> {
 }
 
 /**
+ * 标签统计信息
+ */
+export interface TagStats {
+  name: string;
+  count: number;
+}
+
+/**
+ * 获取所有标签及其使用次数
+ */
+export async function getAllTags(): Promise<TagStats[]> {
+  const result = await db.execute(`SELECT aiEnhanced FROM notes WHERE aiEnhanced IS NOT NULL`);
+  const tagCounts = new Map<string, number>();
+  
+  for (const row of result.rows) {
+    const aiEnhanced = row[0] as string;
+    if (aiEnhanced) {
+      try {
+        const data = JSON.parse(aiEnhanced);
+        if (data.tags && Array.isArray(data.tags)) {
+          for (const tag of data.tags) {
+            if (typeof tag === 'string') {
+              tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+            }
+          }
+        }
+      } catch {
+        // 忽略解析错误的记录
+      }
+    }
+  }
+  
+  // 转换为数组并按使用次数排序
+  return Array.from(tagCounts.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+/**
+ * 重命名标签（更新所有包含该标签的笔记）
+ */
+export async function renameTag(oldName: string, newName: string): Promise<number> {
+  const notes = await getAllNotes(1000);
+  let updatedCount = 0;
+  
+  for (const note of notes) {
+    if (note.aiEnhanced?.tags?.includes(oldName)) {
+      const newTags = note.aiEnhanced.tags.map(tag => 
+        tag === oldName ? newName : tag
+      );
+      
+      const updatedAiEnhanced = {
+        ...note.aiEnhanced,
+        tags: newTags
+      };
+      
+      await db.execute({
+        sql: `UPDATE notes SET aiEnhanced = ? WHERE id = ?`,
+        args: [JSON.stringify(updatedAiEnhanced), note.id] as InValue[]
+      });
+      
+      updatedCount++;
+    }
+  }
+  
+  return updatedCount;
+}
+
+/**
+ * 删除标签（从所有笔记中移除该标签）
+ */
+export async function deleteTag(tagName: string): Promise<number> {
+  const notes = await getAllNotes(1000);
+  let updatedCount = 0;
+  
+  for (const note of notes) {
+    if (note.aiEnhanced?.tags?.includes(tagName)) {
+      const newTags = note.aiEnhanced.tags.filter(tag => tag !== tagName);
+      
+      const updatedAiEnhanced = {
+        ...note.aiEnhanced,
+        tags: newTags
+      };
+      
+      await db.execute({
+        sql: `UPDATE notes SET aiEnhanced = ? WHERE id = ?`,
+        args: [JSON.stringify(updatedAiEnhanced), note.id] as InValue[]
+      });
+      
+      updatedCount++;
+    }
+  }
+  
+  return updatedCount;
+}
+
+/**
+ * 合并标签（将源标签合并到目标标签）
+ */
+export async function mergeTags(sourceTag: string, targetTag: string): Promise<number> {
+  if (sourceTag === targetTag) return 0;
+  
+  const notes = await getAllNotes(1000);
+  let updatedCount = 0;
+  
+  for (const note of notes) {
+    if (note.aiEnhanced?.tags?.includes(sourceTag)) {
+      const newTags = note.aiEnhanced.tags
+        .filter(tag => tag !== sourceTag)
+        .concat(targetTag);
+      
+      // 去重
+      const uniqueTags = [...new Set(newTags)];
+      
+      const updatedAiEnhanced = {
+        ...note.aiEnhanced,
+        tags: uniqueTags
+      };
+      
+      await db.execute({
+        sql: `UPDATE notes SET aiEnhanced = ? WHERE id = ?`,
+        args: [JSON.stringify(updatedAiEnhanced), note.id] as InValue[]
+      });
+      
+      updatedCount++;
+    }
+  }
+  
+  return updatedCount;
+}
+
+/**
  * 获取数据库统计信息
  */
 export async function getDBStats(): Promise<{ notes: number; vectorized: number; avgLength: number }> {

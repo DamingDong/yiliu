@@ -26,8 +26,25 @@ export function KnowledgeBase({ notes, onSearch, onFilterByTag, onSelectNote }: 
   const [searchResults, setSearchResults] = useState<SearchResultNote[] | null>(null);
   const [searching, setSearching] = useState(false);
   const [searchMode, setSearchMode] = useState<SearchMode>('auto');
+  const [tagSortBy, setTagSortBy] = useState<'usage' | 'name'>('usage');
   
-  const allTags = ['技术', '工作', '读书', '想法', '学习', '会议', '项目'];
+  // 从笔记中动态计算所有标签及其使用次数
+  const tagStats = notes.reduce((acc, note) => {
+    note.tags.forEach(tag => {
+      acc[tag] = (acc[tag] || 0) + 1;
+    });
+    return acc;
+  }, {} as Record<string, number>);
+  
+  // 按使用次数或名称排序标签
+  const allTags = Object.entries(tagStats)
+    .sort((a, b) => {
+      if (tagSortBy === 'usage') {
+        return b[1] - a[1]; // 按使用次数降序
+      }
+      return a[0].localeCompare(b[0]); // 按名称升序
+    })
+    .map(([tag]) => tag);
   
   useEffect(() => {
     const performSearch = async () => {
@@ -128,22 +145,54 @@ export function KnowledgeBase({ notes, onSearch, onFilterByTag, onSelectNote }: 
         </div>
         
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <div className="tag-filters" style={{ marginBottom: 0 }}>
+          <div className="tag-filters" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
             <button 
               className={`tag-filter ${filterTag === 'all' ? 'active' : ''}`}
               onClick={() => setFilterTag('all')}
             >
               全部
             </button>
-            {allTags.map(tag => (
+            {allTags.slice(0, 8).map(tag => (
               <button
                 key={tag}
                 className={`tag-filter ${filterTag === tag ? 'active' : ''}`}
                 onClick={() => setFilterTag(tag)}
+                title={`${tag} (${tagStats[tag]} 次)`}
               >
                 {tag}
+                <span style={{ 
+                  marginLeft: 4, 
+                  fontSize: 10, 
+                  opacity: 0.6,
+                  background: 'rgba(0,0,0,0.1)',
+                  padding: '0 4px',
+                  borderRadius: 3
+                }}>
+                  {tagStats[tag]}
+                </span>
               </button>
             ))}
+            {allTags.length > 8 && (
+              <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
+                +{allTags.length - 8}
+              </span>
+            )}
+            <button
+              onClick={() => setTagSortBy(tagSortBy === 'usage' ? 'name' : 'usage')}
+              style={{
+                padding: '4px 8px',
+                fontSize: 11,
+                borderRadius: 4,
+                border: '1px solid var(--color-border)',
+                background: 'transparent',
+                color: 'var(--color-text-muted)',
+                cursor: 'pointer',
+                marginLeft: 8
+              }}
+              title={tagSortBy === 'usage' ? '按使用次数排序' : '按名称排序'}
+            >
+              {tagSortBy === 'usage' ? '次数↓' : 'A-Z'}
+            </button>
           </div>
           
           <div style={{ display: 'flex', gap: 4 }}>

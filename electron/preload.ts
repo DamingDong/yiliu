@@ -25,6 +25,11 @@ const api = {
   openExternal: (url: string) => ipcRenderer.invoke('settings:openExternal', url),
   openFile: (filePath: string) => ipcRenderer.invoke('settings:openFile', filePath),
   testAIConnection: () => ipcRenderer.invoke('settings:testAI'),
+  // 标签管理
+  getAllTags: () => ipcRenderer.invoke('tags:getAll'),
+  renameTag: (oldName: string, newName: string) => ipcRenderer.invoke('tags:rename', oldName, newName),
+  deleteTag: (name: string) => ipcRenderer.invoke('tags:delete', name),
+  mergeTags: (source: string, target: string) => ipcRenderer.invoke('tags:merge', source, target),
   onError: (callback: (error: string) => void) => {
     const handler = (_: any, error: string) => callback(error);
     ipcRenderer.on('error', handler);

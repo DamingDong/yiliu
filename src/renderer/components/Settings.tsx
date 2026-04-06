@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react';
 
-export function Settings() {
+interface SettingsProps {
+  onOpenTagsManagement?: () => void;
+}
+
+export function Settings({ onOpenTagsManagement }: SettingsProps) {
   const [apiKey, setApiKey] = useState('');
   const [embeddingModel, setEmbeddingModel] = useState('local');
+  const [autoTagEnabled, setAutoTagEnabled] = useState(true);
   const [dataPath, setDataPath] = useState('');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
@@ -16,6 +21,7 @@ export function Settings() {
     const settings = await window.electronAPI.getSettings();
     setApiKey(settings.apiKey || '');
     setEmbeddingModel(settings.embeddingModel || 'local');
+    setAutoTagEnabled(settings.autoTagEnabled !== false);
     setDataPath(settings.dataPath);
   };
 
@@ -23,7 +29,8 @@ export function Settings() {
     setSaveStatus('saving');
     const success = await window.electronAPI.saveSettings({ 
       apiKey, 
-      embeddingModel 
+      embeddingModel,
+      autoTagEnabled
     });
     setSaveStatus(success ? 'saved' : 'error');
     setTimeout(() => setSaveStatus('idle'), 2000);
@@ -99,7 +106,50 @@ export function Settings() {
             </select>
           </div>
           
-          <div style={{ display: 'flex', gap: 12 }}>
+          <div className="settings-item" style={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 0', 
+            border: 'none',
+            borderTop: '1px solid var(--color-border)',
+            marginTop: 16
+          }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 14, fontWeight: 500 }}>
+                自动标签生成
+              </label>
+              <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
+                保存笔记时自动使用 AI 生成标签
+              </span>
+            </div>
+            <button
+              onClick={() => setAutoTagEnabled(!autoTagEnabled)}
+              style={{
+                width: 44,
+                height: 24,
+                borderRadius: 12,
+                border: 'none',
+                background: autoTagEnabled ? 'var(--color-primary)' : 'var(--color-border)',
+                position: 'relative',
+                cursor: 'pointer',
+                transition: 'background 0.2s'
+              }}
+            >
+              <span style={{
+                position: 'absolute',
+                top: 2,
+                left: autoTagEnabled ? 22 : 2,
+                width: 20,
+                height: 20,
+                borderRadius: '50%',
+                background: 'white',
+                transition: 'left 0.2s'
+              }} />
+            </button>
+          </div>
+          
+          <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
             <button 
               onClick={handleSave}
               disabled={saveStatus === 'saving'}
@@ -141,6 +191,31 @@ export function Settings() {
               {testMessage}
             </div>
           )}
+        </div>
+        
+        <div className="settings-section" style={{ marginBottom: 30 }}>
+          <div className="settings-title" style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>
+            标签管理
+          </div>
+          
+          <div style={{ fontSize: 14, color: 'var(--color-text-secondary)', marginBottom: 12 }}>
+            管理所有笔记标签，包括重命名、合并和删除操作
+          </div>
+          
+          <button
+            onClick={onOpenTagsManagement}
+            style={{
+              padding: '10px 20px',
+              background: 'transparent',
+              border: '1px solid var(--color-border)',
+              borderRadius: 6,
+              fontSize: 14,
+              cursor: onOpenTagsManagement ? 'pointer' : 'not-allowed',
+              opacity: onOpenTagsManagement ? 1 : 0.5,
+            }}
+          >
+            打开标签管理
+          </button>
         </div>
         
         <div className="settings-section" style={{ marginBottom: 30 }}>
@@ -192,7 +267,7 @@ export function Settings() {
             关于
           </div>
           <div style={{ fontSize: 14, color: 'var(--color-text-secondary)' }}>
-            <p>忆流 v2.0.1</p>
+            <p>忆流 v2.1.0</p>
             <p style={{ marginTop: 8 }}>让知识像水一样流动</p>
             <p style={{ marginTop: 8 }}>
               <a 

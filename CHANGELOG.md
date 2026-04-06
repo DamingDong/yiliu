@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1] - 2026-04-06
+
+### Added
+- TagsManagement 组件：标签管理界面，支持重命名、合并、删除标签
+- 设置页面新增「自动标签生成」开关
+- 设置页面新增「标签管理」入口
+- 数据库标签操作：重命名标签、删除标签、合并标签、获取标签统计
+- 标签管理 API 和 IPC 通信
+- TagsManagement 组件单元测试（16 个测试用例）
+
 ## [2.1.0] - 2026-04-02
 
 ### Added

@@ -368,6 +368,50 @@ function registerIPCHandlers() {
     }
   });
 
+  // 标签管理
+  ipcMain.handle('tags:getAll', async () => {
+    if (!db) return [];
+    try {
+      return await db.getAllTags();
+    } catch (err) {
+      console.error('[IPC] tags:getAll error:', err);
+      return [];
+    }
+  });
+
+  ipcMain.handle('tags:rename', async (_, oldName: string, newName: string) => {
+    if (!db) return false;
+    try {
+      const updated = await db.renameTag(oldName, newName);
+      return updated > 0;
+    } catch (err) {
+      console.error('[IPC] tags:rename error:', err);
+      return false;
+    }
+  });
+
+  ipcMain.handle('tags:delete', async (_, name: string) => {
+    if (!db) return false;
+    try {
+      const deleted = await db.deleteTag(name);
+      return deleted > 0;
+    } catch (err) {
+      console.error('[IPC] tags:delete error:', err);
+      return false;
+    }
+  });
+
+  ipcMain.handle('tags:merge', async (_, source: string, target: string) => {
+    if (!db) return false;
+    try {
+      const merged = await db.mergeTags(source, target);
+      return merged > 0;
+    } catch (err) {
+      console.error('[IPC] tags:merge error:', err);
+      return false;
+    }
+  });
+
   console.log('[忆流] IPC handlers 已注册');
 }
 

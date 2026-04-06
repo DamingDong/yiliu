@@ -201,7 +201,7 @@ describe('Settings Component', () => {
     render(<Settings />);
     await waitFor(() => {
       expect(screen.getByText('关于')).toBeInTheDocument();
-      expect(screen.getByText('忆流 v2.0.1')).toBeInTheDocument();
+      expect(screen.getByText('忆流 v2.1.0')).toBeInTheDocument();
       expect(screen.getByText('让知识像水一样流动')).toBeInTheDocument();
     });
   });

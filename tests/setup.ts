@@ -13,12 +13,17 @@ interface ElectronAPI {
   getStats: () => Promise<{ notes: number; vectorized: number; avgLength: number }>;
   getVersions: (noteId: string) => Promise<any[]>;
   revertToVersion: (noteId: string, version: number) => Promise<any>;
-  getSettings: () => Promise<{ apiKey: string; embeddingModel: string; dataPath: string }>;
-  saveSettings: (settings: { apiKey?: string; embeddingModel?: string }) => Promise<boolean>;
+  getSettings: () => Promise<{ apiKey: string; embeddingModel: string; autoTagEnabled?: boolean; dataPath: string }>;
+  saveSettings: (settings: { apiKey?: string; embeddingModel?: string; autoTagEnabled?: boolean }) => Promise<boolean>;
   openDataDir: () => Promise<void>;
   openExternal: (url: string) => Promise<void>;
   openFile: (filePath: string) => Promise<void>;
   testAIConnection: () => Promise<{ success: boolean; message: string }>;
+  // 标签管理
+  getAllTags: () => Promise<Array<{ name: string; count: number }>>;
+  renameTag: (oldName: string, newName: string) => Promise<boolean>;
+  deleteTag: (name: string) => Promise<boolean>;
+  mergeTags: (source: string, target: string) => Promise<boolean>;
   onError: (callback: (error: string) => void) => () => void;
   onModelLoadProgress: (callback: (data: { stage: string; progress: number }) => void) => () => void;
   onFocusInput: (callback: () => void) => () => void;
@@ -52,12 +57,21 @@ const mockElectronAPI: ElectronAPI = {
   getStats: vi.fn().mockResolvedValue({ notes: 10, vectorized: 5, avgLength: 100 }),
   getVersions: vi.fn().mockResolvedValue([]),
   revertToVersion: vi.fn().mockResolvedValue(null),
-  getSettings: vi.fn().mockResolvedValue({ apiKey: '', embeddingModel: 'local', dataPath: '/Users/test' }),
+  getSettings: vi.fn().mockResolvedValue({ apiKey: '', embeddingModel: 'local', autoTagEnabled: true, dataPath: '/Users/test' }),
   saveSettings: vi.fn().mockResolvedValue(true),
   openDataDir: vi.fn().mockResolvedValue(undefined),
   openExternal: vi.fn().mockResolvedValue(undefined),
   openFile: vi.fn().mockResolvedValue(undefined),
   testAIConnection: vi.fn().mockResolvedValue({ success: true, message: 'OK' }),
+  // 标签管理
+  getAllTags: vi.fn().mockResolvedValue([
+    { name: '技术', count: 5 },
+    { name: '工作', count: 3 },
+    { name: '想法', count: 2 },
+  ]),
+  renameTag: vi.fn().mockResolvedValue(true),
+  deleteTag: vi.fn().mockResolvedValue(true),
+  mergeTags: vi.fn().mockResolvedValue(true),
   onError: vi.fn(() => () => {}),
   onModelLoadProgress: vi.fn(() => () => {}),
   onFocusInput: vi.fn(() => () => {}),

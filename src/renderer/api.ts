@@ -113,6 +113,23 @@ export const api = {
   onModelLoadProgress(callback: (data: { stage: string; progress: number }) => void): () => void {
     return window.electronAPI.onModelLoadProgress(callback);
   },
+
+  // 标签管理
+  async getAllTags(): Promise<Array<{ name: string; count: number }>> {
+    return await window.electronAPI.getAllTags();
+  },
+
+  async renameTag(oldName: string, newName: string): Promise<boolean> {
+    return await window.electronAPI.renameTag(oldName, newName);
+  },
+
+  async deleteTag(name: string): Promise<boolean> {
+    return await window.electronAPI.deleteTag(name);
+  },
+
+  async mergeTags(source: string, target: string): Promise<boolean> {
+    return await window.electronAPI.mergeTags(source, target);
+  },
 };
 
 export { type FrontendNote };
