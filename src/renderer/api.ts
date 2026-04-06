@@ -130,6 +130,43 @@ export const api = {
   async mergeTags(source: string, target: string): Promise<boolean> {
     return await window.electronAPI.mergeTags(source, target);
   },
+
+  async listNotebooks(): Promise<Array<{ id: string; name: string; icon?: string; color?: string; noteCount: number }>> {
+    return await window.electronAPI.listNotebooks();
+  },
+
+  async createNotebook(data: { name: string; icon?: string; color?: string }): Promise<{ id: string; name: string; icon?: string; color?: string; noteCount: number }> {
+    return await window.electronAPI.createNotebook(data);
+  },
+
+  async updateNotebook(id: string, data: { name?: string; icon?: string; color?: string }): Promise<{ id: string; name: string; icon?: string; color?: string; noteCount: number }> {
+    return await window.electronAPI.updateNotebook(id, data);
+  },
+
+  async deleteNotebook(id: string): Promise<boolean> {
+    return await window.electronAPI.deleteNotebook(id);
+  },
+
+  async getNotesInNotebook(notebookId: string): Promise<FrontendNote[]> {
+    const notes = await window.electronAPI.getNotesInNotebook(notebookId);
+    return notes.map((n: any) => noteToFrontend(n.note));
+  },
+
+  async addNoteToNotebook(noteId: string, notebookId: string, source: 'ai' | 'manual' = 'manual'): Promise<boolean> {
+    return await window.electronAPI.addNoteToNotebook(noteId, notebookId, source);
+  },
+
+  async removeNoteFromNotebook(noteId: string, notebookId: string): Promise<boolean> {
+    return await window.electronAPI.removeNoteFromNotebook(noteId, notebookId);
+  },
+
+  async getNotebooksForNote(noteId: string): Promise<Array<{ notebook: { id: string; name: string; icon?: string; color?: string }; isPrimary: boolean; source: 'ai' | 'manual' }>> {
+    return await window.electronAPI.getNotebooksForNote(noteId);
+  },
+
+  async recommendNotebooks(noteId: string): Promise<Array<{ notebook: { id: string; name: string; icon?: string; color?: string }; score: number }>> {
+    return await window.electronAPI.recommendNotebooks(noteId);
+  },
 };
 
 export { type FrontendNote };

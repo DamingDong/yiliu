@@ -30,6 +30,21 @@ const api = {
   renameTag: (oldName: string, newName: string) => ipcRenderer.invoke('tags:rename', oldName, newName),
   deleteTag: (name: string) => ipcRenderer.invoke('tags:delete', name),
   mergeTags: (source: string, target: string) => ipcRenderer.invoke('tags:merge', source, target),
+  // 笔记本管理
+  createNotebook: (data: { name: string; icon?: string; color?: string; description?: string }) => 
+    ipcRenderer.invoke('notebook:create', data),
+  listNotebooks: () => ipcRenderer.invoke('notebook:list'),
+  getNotebook: (id: string) => ipcRenderer.invoke('notebook:get', id),
+  updateNotebook: (id: string, data: { name?: string; icon?: string; color?: string; description?: string }) => 
+    ipcRenderer.invoke('notebook:update', id, data),
+  deleteNotebook: (id: string) => ipcRenderer.invoke('notebook:delete', id),
+  addNoteToNotebook: (noteId: string, notebookId: string, source?: 'ai' | 'manual', isPrimary?: boolean) => 
+    ipcRenderer.invoke('notebook:addNote', noteId, notebookId, source, isPrimary),
+  removeNoteFromNotebook: (noteId: string, notebookId: string) => 
+    ipcRenderer.invoke('notebook:removeNote', noteId, notebookId),
+  getNotesInNotebook: (notebookId: string) => ipcRenderer.invoke('notebook:getNotes', notebookId),
+  getNotebooksForNote: (noteId: string) => ipcRenderer.invoke('notebook:getForNote', noteId),
+  recommendNotebooks: (noteId: string) => ipcRenderer.invoke('notebook:recommend', noteId),
   onError: (callback: (error: string) => void) => {
     const handler = (_: any, error: string) => callback(error);
     ipcRenderer.on('error', handler);

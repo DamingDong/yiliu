@@ -18,7 +18,7 @@ const getDataPath = (): string => {
   return path.join(process.cwd(), 'data');
 };
 
-const CURRENT_DB_VERSION = 1;
+const CURRENT_DB_VERSION = 2;
 
 let db: Client;
 
@@ -78,6 +78,50 @@ async function runMigrations(): Promise<void> {
       args: [1, 1, Date.now()] as InValue[]
     });
     console.log('[yiliu] 迁移 v1 完成');
+  }
+
+  if (currentVersion < 2) {
+    console.log('[yiliu] 迁移 v2: 笔记本系统...');
+    
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS notebooks (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        icon TEXT,
+        color TEXT,
+        description TEXT,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        noteCount INTEGER DEFAULT 0
+      )
+    `);
+
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS note_notebooks (
+        note_id TEXT NOT NULL,
+        notebook_id TEXT NOT NULL,
+        is_primary INTEGER DEFAULT 0,
+        source TEXT DEFAULT 'manual',
+        added_at INTEGER NOT NULL,
+        PRIMARY KEY (note_id, notebook_id),
+        FOREIGN KEY (note_id) REFERENCES notes(id) ON DELETE CASCADE,
+        FOREIGN KEY (notebook_id) REFERENCES notebooks(id) ON DELETE CASCADE
+      )
+    `);
+
+    await db.execute(`
+      CREATE INDEX IF NOT EXISTS idx_note_notebooks_notebook ON note_notebooks(notebook_id)
+    `);
+
+    await db.execute(`
+      CREATE INDEX IF NOT EXISTS idx_note_notebooks_note ON note_notebooks(note_id)
+    `);
+
+    await db.execute({
+      sql: `INSERT INTO db_version (id, version, appliedAt) VALUES (?, ?, ?)`,
+      args: [2, 2, Date.now()] as InValue[]
+    });
+    console.log('[yiliu] 迁移 v2 完成');
   }
 
   // 未来版本迁移可以在这里添加:
@@ -389,6 +433,29 @@ export async function deleteNote(id: string): Promise<boolean> {
     args: [id]
   });
   
+  const affectedNotebooks = await db.execute({
+    sql: `SELECT notebook_id FROM note_notebooks WHERE note_id = ?`,
+    args: [id]
+  });
+  
+  await db.execute({
+    sql: `DELETE FROM note_notebooks WHERE note_id = ?`,
+    args: [id]
+  });
+  
+  for (const row of affectedNotebooks.rows) {
+    const notebookId = row[0] as string;
+    const countResult = await db.execute({
+      sql: `SELECT COUNT(*) FROM note_notebooks WHERE notebook_id = ?`,
+      args: [notebookId]
+    });
+    const count = countResult.rows.length > 0 ? Number(countResult.rows[0][0]) : 0;
+    await db.execute({
+      sql: `UPDATE notebooks SET noteCount = ? WHERE id = ?`,
+      args: [count, notebookId] as InValue[]
+    });
+  }
+  
   const result = await db.execute({
     sql: `DELETE FROM notes WHERE id = ?`,
     args: [id]
@@ -640,4 +707,8 @@ export function updateNoteSync(id: string, content: string): Note | null {
 export function getDBStatsSync(): { notes: number; vectorized: number; avgLength: number } {
   // 同步版本已弃用，请使用 await getDBStats()
   return { notes: 0, vectorized: 0, avgLength: 0 };
+}
+
+export function getDB(): Client {
+  return db;
 }

@@ -47,3 +47,59 @@ export interface AIConfig {
   embeddingModel?: string;
   chatModel?: string;
 }
+
+export interface Notebook {
+  id: string;
+  name: string;
+  icon?: string;
+  color?: string;
+  description?: string;
+  createdAt: number;
+  updatedAt: number;
+  noteCount: number;
+}
+
+export interface NoteNotebook {
+  noteId: string;
+  notebookId: string;
+  isPrimary: boolean;
+  addedAt: number;
+  source: 'ai' | 'manual';
+}
+
+export interface NotebookAssociation {
+  notebook: Notebook;
+  isPrimary: boolean;
+  addedAt: number;
+  source: 'ai' | 'manual';
+}
+
+export interface NotebookWithNote extends Notebook {
+  note: Note;
+}
+
+export interface NoteInNotebook {
+  note: Note;
+  isPrimary: boolean;
+  addedAt: number;
+  source: 'ai' | 'manual';
+}
+
+export interface NotebookMatch {
+  notebook: Notebook;
+  score: number;
+}
+
+export interface CreateNotebookData {
+  name: string;
+  icon?: string;
+  color?: string;
+  description?: string;
+}
+
+export interface UpdateNotebookData {
+  name?: string;
+  icon?: string;
+  color?: string;
+  description?: string;
+}

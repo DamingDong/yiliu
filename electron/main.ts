@@ -412,6 +412,106 @@ function registerIPCHandlers() {
     }
   });
 
+  ipcMain.handle('notebook:create', async (_, data: { name: string; icon?: string; color?: string; description?: string }) => {
+    if (!db) return null;
+    try {
+      return await db.createNotebook(data);
+    } catch (err) {
+      console.error('[IPC] notebook:create error:', err);
+      return null;
+    }
+  });
+
+  ipcMain.handle('notebook:list', async () => {
+    if (!db) return [];
+    try {
+      return await db.getAllNotebooks();
+    } catch (err) {
+      console.error('[IPC] notebook:list error:', err);
+      return [];
+    }
+  });
+
+  ipcMain.handle('notebook:get', async (_, id: string) => {
+    if (!db) return null;
+    try {
+      return await db.getNotebook(id);
+    } catch (err) {
+      console.error('[IPC] notebook:get error:', err);
+      return null;
+    }
+  });
+
+  ipcMain.handle('notebook:update', async (_, id: string, data: { name?: string; icon?: string; color?: string; description?: string }) => {
+    if (!db) return null;
+    try {
+      return await db.updateNotebook(id, data);
+    } catch (err) {
+      console.error('[IPC] notebook:update error:', err);
+      return null;
+    }
+  });
+
+  ipcMain.handle('notebook:delete', async (_, id: string) => {
+    if (!db) return false;
+    try {
+      return await db.deleteNotebook(id);
+    } catch (err) {
+      console.error('[IPC] notebook:delete error:', err);
+      return false;
+    }
+  });
+
+  ipcMain.handle('notebook:addNote', async (_, noteId: string, notebookId: string, source: 'ai' | 'manual' = 'manual', isPrimary: boolean = false) => {
+    if (!db) return false;
+    try {
+      return await db.addNoteToNotebook(noteId, notebookId, source, isPrimary);
+    } catch (err) {
+      console.error('[IPC] notebook:addNote error:', err);
+      return false;
+    }
+  });
+
+  ipcMain.handle('notebook:removeNote', async (_, noteId: string, notebookId: string) => {
+    if (!db) return false;
+    try {
+      return await db.removeNoteFromNotebook(noteId, notebookId);
+    } catch (err) {
+      console.error('[IPC] notebook:removeNote error:', err);
+      return false;
+    }
+  });
+
+  ipcMain.handle('notebook:getNotes', async (_, notebookId: string) => {
+    if (!db) return [];
+    try {
+      return await db.getNotesInNotebook(notebookId);
+    } catch (err) {
+      console.error('[IPC] notebook:getNotes error:', err);
+      return [];
+    }
+  });
+
+  ipcMain.handle('notebook:getForNote', async (_, noteId: string) => {
+    if (!db) return [];
+    try {
+      return await db.getNotebooksForNote(noteId);
+    } catch (err) {
+      console.error('[IPC] notebook:getForNote error:', err);
+      return [];
+    }
+  });
+
+  ipcMain.handle('notebook:recommend', async (_, noteId: string) => {
+    if (!db) return [];
+    try {
+      return await db.recommendNotebooksForNote(noteId);
+    } catch (err) {
+      console.error('[IPC] notebook:recommend error:', err);
+      return [];
+    }
+  });
+
   console.log('[忆流] IPC handlers 已注册');
 }
 

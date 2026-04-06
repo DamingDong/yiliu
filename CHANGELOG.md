@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-04-07
+
+### Added
+- 笔记本系统（M1-M3 完成）
+  - NotebookList 组件：侧边栏笔记本列表
+  - NotebookView 组件：笔记本内容视图
+  - NotebookRecommendation 组件：AI 推荐笔记本
+  - NotebookBadge 组件：笔记详情页笔记本标签
+  - NotebookService：笔记本 CRUD 服务
+  - 数据库 notebook/notebooks 表
+- TDD 测试（195 个测试全部通过）
+- 195 个单元测试
+
 ## [2.1.1] - 2026-04-06
 
 ### Added
