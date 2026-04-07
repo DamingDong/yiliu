@@ -1,11 +1,12 @@
 import { app, BrowserWindow, globalShortcut, Tray, Menu, ipcMain, shell } from 'electron';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { createRequire } from 'module';
-import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const require = createRequire(import.meta.url);
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
@@ -29,13 +30,12 @@ function getResourcePath(...parts: string[]): string {
   return path.join(__dirname, ...parts);
 }
 
-// 使用 createRequire 来动态加载 CommonJS 模块
-const require = createRequire(import.meta.url);
-
 // 动态导入后端模块
 let db: any = null;
 
-const SETTINGS_PATH = path.join(app.getPath('userData'), 'settings.json');
+function getSettingsPath(): string {
+  return path.join(app.getPath('userData'), 'settings.json');
+}
 
 async function loadBackend() {
   try {
@@ -64,20 +64,22 @@ async function loadBackend() {
         return;
       }
       
-      const module = await import(`file://${altPath}`);
+      // 使用动态 import() 加载 ESM 模块
+      const module = await import(/* webpackIgnore: true */ altPath);
       db = module;
       await db.initDB();
       console.log('[忆流] 后端模块已加载 (备用路径)');
       return;
     }
 
-    const module = await import(`file://${backendPath}`);
+    // 使用动态 import() 加载 ESM 模块
+    const module = await import(/* webpackIgnore: true */ backendPath);
     db = module;
     
     const aiModulePath = getModulePath('backend/ai/index.js');
     if (fs.existsSync(aiModulePath)) {
       try {
-        const aiModule = await import(`file://${aiModulePath}`);
+        const aiModule = await import(/* webpackIgnore: true */ aiModulePath);
         if (aiModule.setProgressCallback) {
           aiModule.setProgressCallback((stage: string, progress: number) => {
             mainWindow?.webContents.send('model-load-progress', { stage, progress });
@@ -297,8 +299,8 @@ function registerIPCHandlers() {
 
   ipcMain.handle('settings:get', async () => {
     try {
-      if (fs.existsSync(SETTINGS_PATH)) {
-        return JSON.parse(fs.readFileSync(SETTINGS_PATH, 'utf-8'));
+      if (fs.existsSync(getSettingsPath())) {
+        return JSON.parse(fs.readFileSync(getSettingsPath(), 'utf-8'));
       }
       return { apiKey: '', embeddingModel: 'local', dataPath: app.getPath('userData') };
     } catch (err) {
@@ -310,11 +312,11 @@ function registerIPCHandlers() {
   ipcMain.handle('settings:save', async (_, settings: { apiKey?: string; embeddingModel?: string }) => {
     try {
       let current: any = { apiKey: '', embeddingModel: 'local' };
-      if (fs.existsSync(SETTINGS_PATH)) {
-        current = JSON.parse(fs.readFileSync(SETTINGS_PATH, 'utf-8'));
+      if (fs.existsSync(getSettingsPath())) {
+        current = JSON.parse(fs.readFileSync(getSettingsPath(), 'utf-8'));
       }
       const merged = { ...current, ...settings };
-      fs.writeFileSync(SETTINGS_PATH, JSON.stringify(merged, null, 2));
+      fs.writeFileSync(getSettingsPath(), JSON.stringify(merged, null, 2));
       if (settings.apiKey) {
         process.env.OPENAI_API_KEY = settings.apiKey;
       }
@@ -352,8 +354,8 @@ function registerIPCHandlers() {
   ipcMain.handle('settings:testAI', async () => {
     try {
       let settings: any = { apiKey: '' };
-      if (fs.existsSync(SETTINGS_PATH)) {
-        settings = JSON.parse(fs.readFileSync(SETTINGS_PATH, 'utf-8'));
+      if (fs.existsSync(getSettingsPath())) {
+        settings = JSON.parse(fs.readFileSync(getSettingsPath(), 'utf-8'));
       }
       if (!settings.apiKey) {
         return { success: false, message: '未配置 API Key' };
